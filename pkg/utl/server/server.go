@@ -6,8 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Start() *gin.Engine {
-	r := gin.Default()
+func Start(r *gin.Engine) *gin.Engine {
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",

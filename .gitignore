@@ -8,6 +8,9 @@
 _obj
 _test
 vendor
+bin
+
+.env
 
 # Architecture specific extensions/prefixes
 *.[568vq]
