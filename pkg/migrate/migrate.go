@@ -8,6 +8,8 @@ import (
 
 func Start(conn *pg.DB) {
 	apiMigration := migrations.ApiMigration{Db: conn}
+	usersMigration := migrations.UsersMigration{Db: conn}
 
 	apiMigration.Create()
+	usersMigration.Create()
 }
