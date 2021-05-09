@@ -9,6 +9,8 @@ _obj
 _test
 vendor
 bin
+.vscode
+.idea
 
 .env
 

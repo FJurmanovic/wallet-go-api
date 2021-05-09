@@ -10,9 +10,13 @@ type ApiController struct {
 	ApiService *services.ApiService
 }
 
-func (ac *ApiController) Init(s *gin.Engine) {
-	apiGroup := s.Group("/api")
-	apiGroup.GET("", ac.getFirst)
+func NewApiController(as *services.ApiService, s *gin.RouterGroup) *ApiController {
+	ac := new(ApiController)
+	ac.ApiService = as
+
+	s.GET("", ac.getFirst)
+
+	return ac
 }
 
 func (ac *ApiController) getFirst(c *gin.Context) {
