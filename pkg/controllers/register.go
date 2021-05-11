@@ -10,12 +10,12 @@ import (
 )
 
 type RegisterController struct {
-	RegisterService *services.RegisterService
+	UsersService *services.UsersService
 }
 
-func NewRegisterController(rs *services.RegisterService, s *gin.RouterGroup) *RegisterController {
+func NewRegisterController(rs *services.UsersService, s *gin.RouterGroup) *RegisterController {
 	rc := new(RegisterController)
-	rc.RegisterService = rs
+	rc.UsersService = rs
 
 	s.POST("", rc.Post)
 
@@ -23,12 +23,12 @@ func NewRegisterController(rs *services.RegisterService, s *gin.RouterGroup) *Re
 }
 
 func (rc *RegisterController) Post(c *gin.Context) {
-	registerBody := createModel()
+	registerBody := createUserModel()
 	if err := c.ShouldBindJSON(&registerBody); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	returnedUser, returnException := rc.RegisterService.Create(&registerBody)
+	returnedUser, returnException := rc.UsersService.Create(&registerBody)
 
 	if returnException.Message != "" {
 		c.JSON(returnException.StatusCode, returnException)
@@ -38,7 +38,7 @@ func (rc *RegisterController) Post(c *gin.Context) {
 
 }
 
-func createModel() models.UserModel {
+func createUserModel() models.UserModel {
 	commonModel := common.CreateDbModel()
 	userModel := models.UserModel{CommonModel: commonModel}
 	return userModel
