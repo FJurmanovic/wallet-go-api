@@ -13,9 +13,13 @@ type RegisterController struct {
 	RegisterService *services.RegisterService
 }
 
-func (rc *RegisterController) Init(s *gin.Engine) {
-	apiGroup := s.Group("/register")
-	apiGroup.POST("", rc.Post)
+func NewRegisterController(rs *services.RegisterService, s *gin.RouterGroup) *RegisterController {
+	rc := new(RegisterController)
+	rc.RegisterService = rs
+
+	s.POST("", rc.Post)
+
+	return rc
 }
 
 func (rc *RegisterController) Post(c *gin.Context) {

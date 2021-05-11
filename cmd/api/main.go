@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 	"wallet-api/pkg/api"
-	"wallet-api/pkg/utl/common"
 	"wallet-api/pkg/utl/db"
 	"wallet-api/pkg/utl/server"
 
@@ -12,8 +11,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load()
-	common.CheckError(err)
+	godotenv.Load()
 
 	dbUrl := os.Getenv("DATABASE_URL")
 	r := gin.Default()
