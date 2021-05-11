@@ -14,10 +14,12 @@ func Routes(s *gin.Engine, db *pg.DB) {
 
 	api := ver.Group("api")
 	register := ver.Group("register")
+	login := ver.Group("login")
 
 	apiService := services.ApiService{Db: db}
-	registerService := services.RegisterService{Db: db}
+	usersService := services.UsersService{Db: db}
 
 	controllers.NewApiController(&apiService, api)
-	controllers.NewRegisterController(&registerService, register)
+	controllers.NewRegisterController(&usersService, register)
+	controllers.NewLoginController(&usersService, login)
 }
