@@ -8,3 +8,7 @@ type LoginModel struct {
 	Email    string
 	Password string
 }
+
+type AuthModel struct {
+	Id string
+}

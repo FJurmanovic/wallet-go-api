@@ -22,15 +22,15 @@ func NewLoginController(rs *services.UsersService, s *gin.RouterGroup) *LoginCon
 }
 
 func (rc *LoginController) Post(c *gin.Context) {
-	loginBody := new(models.LoginModel)
-	if err := c.ShouldBindJSON(&loginBody); err != nil {
+	body := new(models.LoginModel)
+	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	returnedUser, returnException := rc.UsersService.Login(loginBody)
+	returnedUser, exceptionReturn := rc.UsersService.Login(body)
 
-	if returnException.Message != "" {
-		c.JSON(returnException.StatusCode, returnException)
+	if exceptionReturn.Message != "" {
+		c.JSON(exceptionReturn.StatusCode, exceptionReturn)
 	} else {
 		c.JSON(200, returnedUser)
 	}
