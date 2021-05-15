@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"wallet-api/pkg/models"
 	"wallet-api/pkg/services"
-	"wallet-api/pkg/utl/common"
 
 	"github.com/gin-gonic/gin"
 )
@@ -23,23 +22,18 @@ func NewRegisterController(rs *services.UsersService, s *gin.RouterGroup) *Regis
 }
 
 func (rc *RegisterController) Post(c *gin.Context) {
-	registerBody := createUserModel()
-	if err := c.ShouldBindJSON(&registerBody); err != nil {
+	body := new(models.UserModel)
+	body.Init()
+	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	returnedUser, returnException := rc.UsersService.Create(&registerBody)
+	returnedUser, exceptionReturn := rc.UsersService.Create(body)
 
-	if returnException.Message != "" {
-		c.JSON(returnException.StatusCode, returnException)
+	if exceptionReturn.Message != "" {
+		c.JSON(exceptionReturn.StatusCode, exceptionReturn)
 	} else {
 		c.JSON(200, returnedUser.Payload())
 	}
 
-}
-
-func createUserModel() models.UserModel {
-	commonModel := common.CreateDbModel()
-	userModel := models.UserModel{CommonModel: commonModel}
-	return userModel
 }
