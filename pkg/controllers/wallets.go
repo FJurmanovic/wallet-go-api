@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"net/http"
 	"wallet-api/pkg/models"
 	"wallet-api/pkg/services"
 
@@ -22,21 +23,26 @@ func NewWalletsController(as *services.WalletService, s *gin.RouterGroup) *Walle
 }
 
 func (wc *WalletsController) New(c *gin.Context) {
-	body := new(models.AuthModel)
+	body := new(models.NewWalletBody)
+
+	if err := c.ShouldBindJSON(body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 
 	get := c.MustGet("auth")
-	body.Id = get.(*models.AuthModel).Id
+	body.UserID = get.(*models.Auth).Id
 
 	wm := wc.WalletService.New(body)
 	c.JSON(200, wm)
 }
 
 func (wc *WalletsController) Get(c *gin.Context) {
-	body := new(models.AuthModel)
+	body := new(models.Auth)
 
 	embed, _ := c.GetQuery("embed")
 	auth := c.MustGet("auth")
-	body.Id = auth.(*models.AuthModel).Id
+	body.Id = auth.(*models.Auth).Id
 
 	wm := wc.WalletService.Get(body, embed)
 

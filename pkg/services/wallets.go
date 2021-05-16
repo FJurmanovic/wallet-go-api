@@ -11,30 +11,21 @@ type WalletService struct {
 	Db *pg.DB
 }
 
-func (as *WalletService) New(am *models.AuthModel) *models.WalletModel {
-	walletType := as.GetType()
+func (as *WalletService) New(am *models.NewWalletBody) *models.Wallet {
 
-	walletModel := new(models.WalletModel)
+	walletModel := new(models.Wallet)
 	walletModel.Init()
-	walletModel.UserID = am.Id
-	walletModel.WalletTypeID = walletType.Id
+	walletModel.UserID = am.UserID
+	walletModel.Name = am.Name
 	as.Db.Model(walletModel).Insert()
 	return walletModel
 }
 
-func (as *WalletService) Get(am *models.AuthModel, embed string) *models.WalletModel {
-	wm := new(models.WalletModel)
+func (as *WalletService) Get(am *models.Auth, embed string) *models.Wallet {
+	wm := new(models.Wallet)
 
 	query := as.Db.Model(wm).Where("? = ?", pg.Ident("user_id"), am.Id)
 	common.GenerateEmbed(query, embed).Select()
 
 	return wm
-}
-
-func (as *WalletService) GetType() *models.WalletTypeModel {
-	wt := new(models.WalletTypeModel)
-
-	as.Db.Model(wt).Select()
-
-	return wt
 }

@@ -22,7 +22,7 @@ func NewLoginController(rs *services.UsersService, s *gin.RouterGroup) *LoginCon
 }
 
 func (rc *LoginController) Post(c *gin.Context) {
-	body := new(models.LoginModel)
+	body := new(models.Login)
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

@@ -15,7 +15,7 @@ type UsersMigration struct {
 
 func (am *UsersMigration) Create() {
 	models := []interface{}{
-		(*models.UserModel)(nil),
+		(*models.User)(nil),
 	}
 
 	for _, model := range models {
