@@ -1,14 +1,14 @@
 package models
 
-type TokenModel struct {
+type Token struct {
 	Token string `json:"token"`
 }
 
-type LoginModel struct {
+type Login struct {
 	Email    string
 	Password string
 }
 
-type AuthModel struct {
+type Auth struct {
 	Id string
 }

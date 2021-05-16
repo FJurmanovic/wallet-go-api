@@ -17,9 +17,9 @@ type UsersService struct {
 	Db *pg.DB
 }
 
-func (us *UsersService) Create(registerBody *models.UserModel) (*models.UserModel, *models.ExceptionModel) {
-	check := new(models.UserModel)
-	exceptionReturn := new(models.ExceptionModel)
+func (us *UsersService) Create(registerBody *models.User) (*models.User, *models.Exception) {
+	check := new(models.User)
+	exceptionReturn := new(models.Exception)
 
 	us.Db.Model(check).Where("? = ?", pg.Ident("username"), registerBody.Username).WhereOr("? = ?", pg.Ident("email"), registerBody.Email).Select()
 	if check.Username != "" || check.Email != "" {
@@ -44,10 +44,10 @@ func (us *UsersService) Create(registerBody *models.UserModel) (*models.UserMode
 	return registerBody, exceptionReturn
 }
 
-func (us *UsersService) Login(loginBody *models.LoginModel) (*models.TokenModel, *models.ExceptionModel) {
-	check := new(models.UserModel)
-	exceptionReturn := new(models.ExceptionModel)
-	tokenPayload := new(models.TokenModel)
+func (us *UsersService) Login(loginBody *models.Login) (*models.Token, *models.Exception) {
+	check := new(models.User)
+	exceptionReturn := new(models.Exception)
+	tokenPayload := new(models.Token)
 
 	us.Db.Model(check).Where("? = ?", pg.Ident("email"), loginBody.Email).Select()
 	if check.Email == "" {
@@ -72,7 +72,7 @@ func (us *UsersService) Login(loginBody *models.LoginModel) (*models.TokenModel,
 	return tokenPayload, exceptionReturn
 }
 
-func CreateToken(user *models.UserModel) (string, error) {
+func CreateToken(user *models.User) (string, error) {
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true
 	atClaims["id"] = user.Id

@@ -13,7 +13,7 @@ import (
 )
 
 func Auth(c *gin.Context) {
-	exceptionReturn := new(models.ExceptionModel)
+	exceptionReturn := new(models.Exception)
 	tokenString := ExtractToken(c)
 	secret := os.Getenv("ACCESS_SECRET")
 	if secret == "" {
@@ -37,7 +37,7 @@ func Auth(c *gin.Context) {
 	if ok && token.Valid {
 		userId, _ := claims["id"].(string)
 
-		authModel := new(models.AuthModel)
+		authModel := new(models.Auth)
 		authModel.Id = userId
 
 		c.Set("auth", authModel)

@@ -15,8 +15,7 @@ type WalletsMigration struct {
 
 func (am *WalletsMigration) Create() {
 	models := []interface{}{
-		(*models.WalletTypeModel)(nil),
-		(*models.WalletModel)(nil),
+		(*models.Wallet)(nil),
 	}
 
 	for _, model := range models {
@@ -30,11 +29,4 @@ func (am *WalletsMigration) Create() {
 			fmt.Println("Table created successfully")
 		}
 	}
-}
-
-func (am *WalletsMigration) PopulateTypes() {
-	walletTypeModel := new(models.WalletTypeModel)
-	walletTypeModel.Init()
-	walletTypeModel.Name = "Test"
-	am.Db.Model(walletTypeModel).Insert()
 }

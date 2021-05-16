@@ -6,13 +6,13 @@ import (
 	"github.com/google/uuid"
 )
 
-type CommonModel struct {
+type BaseModel struct {
 	Id          string    `json:"id" pg:"id,pk"`
-	DateCreated time.Time `json:"dateCreated" pg:"datecreated"`
-	DateUpdated time.Time `json:"dateUpdated" pg:"dateupdated"`
+	DateCreated time.Time `json:"dateCreated" pg:"date_created"`
+	DateUpdated time.Time `json:"dateUpdated" pg:"date_updated"`
 }
 
-func (cm *CommonModel) Init() {
+func (cm *BaseModel) Init() {
 	date := time.Now()
 	cm.Id = uuid.NewString()
 	cm.DateCreated = date

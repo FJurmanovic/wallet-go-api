@@ -1,23 +1,23 @@
 package models
 
-type UserModel struct {
+type User struct {
 	tableName struct{} `pg:"users,alias:users"`
-	CommonModel
+	BaseModel
 	Username string `json:"username" pg:"username"`
 	Password string `json:"password" pg:"password"`
 	Email    string `json:"email" pg:"email"`
 }
 
-type UserReturnInfoModel struct {
+type UserReturnInfo struct {
 	tableName struct{} `pg:"users,alias:users"`
-	CommonModel
+	BaseModel
 	Username string `json:"username"`
 	Email    string `json:"email"`
 }
 
-func (um *UserModel) Payload() *UserReturnInfoModel {
-	payload := new(UserReturnInfoModel)
-	payload.CommonModel = um.CommonModel
+func (um *User) Payload() *UserReturnInfo {
+	payload := new(UserReturnInfo)
+	payload.BaseModel = um.BaseModel
 	payload.Username = um.Username
 	payload.Email = um.Email
 

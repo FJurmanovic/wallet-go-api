@@ -22,9 +22,9 @@ func NewRegisterController(rs *services.UsersService, s *gin.RouterGroup) *Regis
 }
 
 func (rc *RegisterController) Post(c *gin.Context) {
-	body := new(models.UserModel)
+	body := new(models.User)
 	body.Init()
-	if err := c.ShouldBindJSON(&body); err != nil {
+	if err := c.ShouldBindJSON(body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

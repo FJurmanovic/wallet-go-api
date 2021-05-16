@@ -9,18 +9,19 @@ import (
 	"github.com/go-pg/pg/v10/orm"
 )
 
-type UsersMigration struct {
+type TransactionsMigration struct {
 	Db *pg.DB
 }
 
-func (am *UsersMigration) Create() {
+func (am *TransactionsMigration) Create() {
 	models := []interface{}{
-		(*models.User)(nil),
+		(*models.Transaction)(nil),
 	}
 
 	for _, model := range models {
 		err := am.Db.Model(model).CreateTable(&orm.CreateTableOptions{
-			IfNotExists: true,
+			IfNotExists:   false,
+			FKConstraints: true,
 		})
 		if err != nil {
 			log.Printf("Error Creating Table: %s", err)
