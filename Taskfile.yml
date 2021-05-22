@@ -1,12 +1,15 @@
-version: '3'
+version: "3"
 
 tasks:
-  build:
-    cmds:
-      - go build -o "./bin/api.exe" "./cmd/api/main.go"
-  run:
-    cmds:
-      - go run cmd/api/main.go
-  migrate:
-    cmds:
-      - go run cmd/migrate/main.go
+    build:
+        cmds:
+            - go build -o "./bin/api.exe" "./cmd/api/main.go"
+    run:
+        cmds:
+            - go run cmd/api/main.go
+    migrate:
+        cmds:
+            - go run cmd/migrate/main.go
+    build-run:
+        cmds:
+            - go build -o "./bin/api.exe" "./cmd/api/main.go" && ./bin/api.exe
