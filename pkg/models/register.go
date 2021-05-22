@@ -3,6 +3,7 @@ package models
 type User struct {
 	tableName struct{} `pg:"users,alias:users"`
 	BaseModel
+	IsActive bool   `json:"isActive" pg:"is_active"`
 	Username string `json:"username" pg:"username"`
 	Password string `json:"password" pg:"password"`
 	Email    string `json:"email" pg:"email"`

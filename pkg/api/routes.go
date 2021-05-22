@@ -14,8 +14,7 @@ func Routes(s *gin.Engine, db *pg.DB) {
 	ver := s.Group(configs.Prefix)
 
 	api := ver.Group("api", middleware.Auth)
-	register := ver.Group("register")
-	login := ver.Group("login")
+	auth := ver.Group("auth")
 	wallet := ver.Group("wallet", middleware.Auth)
 	transaction := ver.Group("transaction", middleware.Auth)
 	transactionType := ver.Group("transaction-type", middleware.Auth)
@@ -27,8 +26,7 @@ func Routes(s *gin.Engine, db *pg.DB) {
 	transactionTypeService := services.TransactionTypeService{Db: db}
 
 	controllers.NewApiController(&apiService, api)
-	controllers.NewRegisterController(&usersService, register)
-	controllers.NewLoginController(&usersService, login)
+	controllers.NewAuthController(&usersService, auth)
 	controllers.NewWalletsController(&walletService, wallet)
 	controllers.NewTransactionController(&transactionService, transaction)
 	controllers.NewTransactionTypeController(&transactionTypeService, transactionType)
