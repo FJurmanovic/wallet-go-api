@@ -12,3 +12,7 @@ type FilteredResponse struct {
 }
 
 type ResponseFunc func(*gin.Context) *[]interface{}
+
+type MessageResponse struct {
+	Message string `json:"message"`
+}
