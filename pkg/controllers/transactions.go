@@ -34,10 +34,10 @@ func (wc *TransactionController) New(c *gin.Context) {
 }
 
 func (wc *TransactionController) GetAll(c *gin.Context) {
-	embed, _ := c.GetQuery("embed")
+	fr := FilteredResponse(c)
 	wallet, _ := c.GetQuery("walletId")
 
-	wm := wc.TransactionService.GetAll(wallet, embed)
+	wc.TransactionService.GetAll(wallet, fr)
 
-	c.JSON(200, wm)
+	c.JSON(200, fr)
 }

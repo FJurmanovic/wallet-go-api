@@ -2,7 +2,6 @@ package services
 
 import (
 	"wallet-api/pkg/models"
-	"wallet-api/pkg/utl/common"
 
 	"github.com/go-pg/pg/v10"
 )
@@ -25,11 +24,9 @@ func (as *TransactionService) New(body *models.NewTransactionBody) *models.Trans
 	return tm
 }
 
-func (as *TransactionService) GetAll(walletId string, embed string) *[]models.Transaction {
+func (as *TransactionService) GetAll(walletId string, filtered *models.FilteredResponse) {
 	wm := new([]models.Transaction)
 
 	query := as.Db.Model(wm).Where("? = ?", pg.Ident("wallet_id"), walletId)
-	common.GenerateEmbed(query, embed).Select()
-
-	return wm
+	FilteredResponse(query, wm, filtered)
 }
