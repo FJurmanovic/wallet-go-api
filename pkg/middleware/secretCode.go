@@ -15,6 +15,7 @@ func SecretCode(c *gin.Context) {
 	if secret == "" {
 		secret = configs.SecretCode
 	}
+	print(secret, secretCode)
 	if secret != secretCode {
 		exceptionReturn.ErrorCode = "401101"
 		exceptionReturn.StatusCode = 401
