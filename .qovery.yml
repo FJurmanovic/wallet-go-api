@@ -1,23 +1,17 @@
 ---
 application:
-    name: "wallet-go-api"
-
-    project: "wallet-api"
-
-    organization: "QoveryCommunity"
+    name: wallet-go-api
+    project: wallet-api
+    organization: QoveryCommunity
 
 databases:
-    - type: "POSTGRESQL"
-
-      name: "wallet"
-
-      version: "12"
+    - type: POSTGRESQL
+      name: wallet
+      version: 12
 
 routers:
-    - name: "main-wallet-go-api"
-
+    - name: main-wallet-go-api
       routes:
-          - application_name: "wallet-go-api"
-
+          - application_name: wallet-go-api
             paths:
-                - "/*"
+                - /
