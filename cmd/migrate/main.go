@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"os"
 	"wallet-api/pkg/migrate"
 	"wallet-api/pkg/utl/db"
@@ -10,11 +9,7 @@ import (
 )
 
 func main() {
-
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	godotenv.Load()
 
 	dbUrl := os.Getenv("DATABASE_URL")
 
