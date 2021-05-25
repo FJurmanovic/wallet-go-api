@@ -14,5 +14,7 @@ WORKDIR /app
 COPY --from=builder /app/bin/migrate /usr/bin/
 COPY --from=builder /app/bin/api /usr/bin/
 
+EXPOSE ${PORT}
+
 CMD ["migrate"]
 ENTRYPOINT ["api"]
