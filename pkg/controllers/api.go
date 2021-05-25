@@ -16,7 +16,7 @@ func NewApiController(as *services.ApiService, s *gin.RouterGroup) *ApiControlle
 	ac.ApiService = as
 
 	s.GET("", ac.getFirst)
-	s.POST("migrate", middleware.Auth, ac.postMigrate)
+	s.POST("migrate", middleware.SecretCode, ac.postMigrate)
 
 	return ac
 }
