@@ -6,16 +6,18 @@ import (
 	"github.com/go-pg/pg/v10"
 )
 
-func Start(conn *pg.DB) {
+func Start(conn *pg.DB) error {
 	apiMigration := migrations.ApiMigration{Db: conn}
 	usersMigration := migrations.UsersMigration{Db: conn}
 	walletsMigration := migrations.WalletsMigration{Db: conn}
 	transactionTypesMigration := migrations.TransactionTypesMigration{Db: conn}
 	transactionsMigration := migrations.TransactionsMigration{Db: conn}
 
-	apiMigration.Create()
-	usersMigration.Create()
-	walletsMigration.Create()
-	transactionTypesMigration.Create()
-	transactionsMigration.Create()
+	err := apiMigration.Create()
+	err = usersMigration.Create()
+	err = walletsMigration.Create()
+	err = transactionTypesMigration.Create()
+	err = transactionsMigration.Create()
+
+	return err
 }

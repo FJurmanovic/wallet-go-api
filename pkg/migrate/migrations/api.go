@@ -13,7 +13,7 @@ type ApiMigration struct {
 	Db *pg.DB
 }
 
-func (am *ApiMigration) Create() {
+func (am *ApiMigration) Create() error {
 	models := []interface{}{
 		(*models.ApiModel)(nil),
 	}
@@ -24,8 +24,10 @@ func (am *ApiMigration) Create() {
 		})
 		if err != nil {
 			log.Printf("Error Creating Table: %s", err)
+			return err
 		} else {
 			fmt.Println("Table created successfully")
 		}
 	}
+	return nil
 }

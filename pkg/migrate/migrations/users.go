@@ -13,7 +13,7 @@ type UsersMigration struct {
 	Db *pg.DB
 }
 
-func (am *UsersMigration) Create() {
+func (am *UsersMigration) Create() error {
 	models := []interface{}{
 		(*models.User)(nil),
 	}
@@ -24,8 +24,10 @@ func (am *UsersMigration) Create() {
 		})
 		if err != nil {
 			log.Printf("Error Creating Table: %s", err)
+			return err
 		} else {
 			fmt.Println("Table created successfully")
 		}
 	}
+	return nil
 }

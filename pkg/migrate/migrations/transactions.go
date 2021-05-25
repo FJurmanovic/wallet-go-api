@@ -13,7 +13,7 @@ type TransactionsMigration struct {
 	Db *pg.DB
 }
 
-func (am *TransactionsMigration) Create() {
+func (am *TransactionsMigration) Create() error {
 	models := []interface{}{
 		(*models.Transaction)(nil),
 	}
@@ -25,8 +25,10 @@ func (am *TransactionsMigration) Create() {
 		})
 		if err != nil {
 			log.Printf("Error Creating Table: %s", err)
+			return err
 		} else {
 			fmt.Println("Table created successfully")
 		}
 	}
+	return nil
 }
