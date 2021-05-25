@@ -13,7 +13,7 @@ import (
 func Routes(s *gin.Engine, db *pg.DB) {
 	ver := s.Group(configs.Prefix)
 
-	api := ver.Group("api", middleware.Auth)
+	api := ver.Group("api")
 	auth := ver.Group("auth")
 	wallet := ver.Group("wallet", middleware.Auth)
 	transaction := ver.Group("transaction", middleware.Auth)
