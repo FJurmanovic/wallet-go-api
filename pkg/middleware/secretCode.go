@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net/http"
 	"os"
 	"wallet-api/pkg/models"
 	"wallet-api/pkg/utl/configs"
@@ -15,7 +16,6 @@ func SecretCode(c *gin.Context) {
 	if secret == "" {
 		secret = configs.SecretCode
 	}
-	print(secret, secretCode)
 	if secret != secretCode {
 		exceptionReturn.ErrorCode = "401101"
 		exceptionReturn.StatusCode = 401
@@ -26,6 +26,14 @@ func SecretCode(c *gin.Context) {
 }
 
 func ExtractCode(c *gin.Context) string {
-	secret := c.GetHeader("SECRET_CODE")
-	return secret
+	secret := new(SecretCodeModel)
+	if err := c.ShouldBindJSON(&secret); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return ""
+	}
+	return secret.SecretCode
+}
+
+type SecretCodeModel struct {
+	SecretCode string `json:"secretCode"`
 }
