@@ -9,6 +9,7 @@ type Transaction struct {
 	TransactionTypeID string           `json:"transactionTypeId", pg:"transaction_type_id"`
 	TransactionType   *TransactionType `json:"transactionType", pg:"rel:has-one, fk:transaction_type_id"`
 	WalletID          string           `json:"walletId", pg:"wallet_id"`
+	Amount            int              `json:"amount", pg:"amount"`
 	Wallet            *Wallet          `json:"wallet" pg:"rel:has-one, fk:wallet_id"`
 	TransactionDate   time.Time        `json:"transactionDate" pg:"transaction_date"`
 }
