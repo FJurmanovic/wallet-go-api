@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"wallet-api/pkg/api"
 	"wallet-api/pkg/middleware"
@@ -13,11 +12,9 @@ import (
 )
 
 func main() {
-	fmt.Println("Start")
 	godotenv.Load()
 
 	dbUrl := os.Getenv("DATABASE_URL")
-	fmt.Println("Database: ", dbUrl)
 	r := gin.New()
 	r.Use(middleware.CORSMiddleware())
 
