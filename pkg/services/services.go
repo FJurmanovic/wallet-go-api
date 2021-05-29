@@ -8,7 +8,16 @@ import (
 )
 
 func FilteredResponse(qry *pg.Query, mdl interface{}, filtered *models.FilteredResponse) {
-	qry = qry.Limit(filtered.Rpp).Offset((filtered.Page - 1) * filtered.Rpp)
+	if filtered.Page == 0 {
+		filtered.Page = 1
+	}
+	if filtered.Rpp == 0 {
+		filtered.Rpp = 20
+	}
+	if filtered.SortBy == "" {
+		filtered.SortBy = "date_created DESC"
+	}
+	qry = qry.Limit(filtered.Rpp).Offset((filtered.Page - 1) * filtered.Rpp).Order(filtered.SortBy)
 	common.GenerateEmbed(qry, filtered.Embed)
 	count, err := qry.SelectAndCount()
 	common.CheckError(err)

@@ -29,3 +29,10 @@ func (as *WalletService) Get(am *models.Auth, embed string) *models.Wallet {
 
 	return wm
 }
+
+func (as *WalletService) GetAll(am *models.Auth, filtered *models.FilteredResponse) {
+	wm := new([]models.Wallet)
+
+	query := as.Db.Model(wm).Where("? = ?", pg.Ident("user_id"), am.Id)
+	FilteredResponse(query, wm, filtered)
+}
