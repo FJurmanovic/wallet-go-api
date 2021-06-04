@@ -8,6 +8,6 @@ type TransactionType struct {
 }
 
 type NewTransactionTypeBody struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
+	Name string `json:"name" form:"name"`
+	Type string `json:"type" form:"type"`
 }

@@ -27,6 +27,9 @@ func (as *TransactionService) New(body *models.NewTransactionBody) *models.Trans
 func (as *TransactionService) GetAll(walletId string, filtered *models.FilteredResponse) {
 	wm := new([]models.Transaction)
 
-	query := as.Db.Model(wm).Where("? = ?", pg.Ident("wallet_id"), walletId)
+	query := as.Db.Model((wm))
+	if walletId != "" {
+		query = query.Where("? = ?", pg.Ident("wallet_id"), walletId)
+	}
 	FilteredResponse(query, wm, filtered)
 }

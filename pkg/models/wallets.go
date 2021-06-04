@@ -9,6 +9,6 @@ type Wallet struct {
 }
 
 type NewWalletBody struct {
-	Name   string `json:"name"`
-	UserID string `json:"userId"`
+	Name   string `json:"name" form:"name"`
+	UserID string `json:"userId" form:"userId"`
 }

@@ -24,7 +24,7 @@ func NewTransactionController(as *services.TransactionService, s *gin.RouterGrou
 
 func (wc *TransactionController) New(c *gin.Context) {
 	body := new(models.NewTransactionBody)
-	if err := c.ShouldBindJSON(body); err != nil {
+	if err := c.ShouldBind(body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

@@ -25,7 +25,7 @@ func NewWalletsController(as *services.WalletService, s *gin.RouterGroup) *Walle
 func (wc *WalletsController) New(c *gin.Context) {
 	body := new(models.NewWalletBody)
 
-	if err := c.ShouldBindJSON(body); err != nil {
+	if err := c.ShouldBind(body); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}

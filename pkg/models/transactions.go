@@ -15,8 +15,8 @@ type Transaction struct {
 }
 
 type NewTransactionBody struct {
-	WalletID          string    `json:"walletId"`
-	TransactionTypeID string    `json:"transactionTypeId"`
-	TransactionDate   time.Time `json:"transactionDate"`
-	Description       string    `json:"description"`
+	WalletID          string    `json:"walletId" form:"walletId"`
+	TransactionTypeID string    `json:"transactionTypeId" form:"transactionTypeId"`
+	TransactionDate   time.Time `json:"transactionDate" form:"transactionDate"`
+	Description       string    `json:"description" form:"description"`
 }

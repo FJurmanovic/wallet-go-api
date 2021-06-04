@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"os"
 	"strings"
 	"wallet-api/pkg/models"
@@ -14,20 +15,7 @@ import (
 func Auth(c *gin.Context) {
 	exceptionReturn := new(models.Exception)
 	tokenString := ExtractToken(c)
-	secret := os.Getenv("ACCESS_SECRET")
-	if secret == "" {
-		secret = configs.Secret
-	}
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		_, ok := token.Method.(*jwt.SigningMethodHMAC)
-		if !ok {
-			exceptionReturn.ErrorCode = "401001"
-			exceptionReturn.StatusCode = 401
-			exceptionReturn.Message = "Invalid token"
-			c.AbortWithStatusJSON(exceptionReturn.StatusCode, exceptionReturn)
-		}
-		return []byte(secret), nil
-	})
+	token, err := CheckToken(tokenString)
 	if err != nil {
 		exceptionReturn.ErrorCode = "401001"
 		exceptionReturn.StatusCode = 401
@@ -56,4 +44,20 @@ func ExtractToken(c *gin.Context) string {
 		}
 	}
 	return ""
+}
+
+func CheckToken(tokenString string) (*jwt.Token, error) {
+	secret := os.Getenv("ACCESS_SECRET")
+	if secret == "" {
+		secret = configs.Secret
+	}
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		_, ok := token.Method.(*jwt.SigningMethodHMAC)
+		var err error
+		if !ok {
+			err = errors.New("Invalid token")
+		}
+		return []byte(secret), err
+	})
+	return token, err
 }
