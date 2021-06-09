@@ -12,3 +12,11 @@ type NewWalletBody struct {
 	Name   string `json:"name" form:"name"`
 	UserID string `json:"userId" form:"userId"`
 }
+
+type WalletHeader struct {
+	WalletId       string `json:"walletId"`
+	CurrentBalance int    `json:"currentBalance"`
+	LastMonth      int    `json:"lastMonth"`
+	NextMonth      int    `json:"nextMonth"`
+	Currency       string `json:"currency"`
+}

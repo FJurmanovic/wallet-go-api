@@ -74,9 +74,9 @@ func (rc *AuthController) CheckToken(c *gin.Context) {
 	token, _ := c.GetQuery("token")
 	re := new(models.CheckToken)
 
-	valid, err := middleware.CheckToken(token)
+	_, err := middleware.CheckToken(token)
 
-	if err != nil && valid.Valid {
+	if err != nil {
 		re.Valid = false
 		c.AbortWithStatusJSON(400, re)
 	}

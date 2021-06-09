@@ -1,6 +1,7 @@
 package services
 
 import (
+	"time"
 	"wallet-api/pkg/models"
 
 	"github.com/go-pg/pg/v10"
@@ -13,11 +14,18 @@ type TransactionService struct {
 func (as *TransactionService) New(body *models.NewTransactionBody) *models.Transaction {
 	tm := new(models.Transaction)
 
+	amount, _ := body.Amount.Int64()
+
 	tm.Init()
 	tm.WalletID = body.WalletID
 	tm.TransactionTypeID = body.TransactionTypeID
 	tm.Description = body.Description
 	tm.TransactionDate = body.TransactionDate
+	tm.Amount = int(amount)
+
+	if body.TransactionDate.IsZero() {
+		tm.TransactionDate = time.Now()
+	}
 
 	as.Db.Model(tm).Insert()
 
