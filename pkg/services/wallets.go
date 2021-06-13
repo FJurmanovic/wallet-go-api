@@ -43,7 +43,7 @@ func (as *WalletService) GetHeader(am *models.Auth, embed string, walletId strin
 	//wallets := new([]models.Wallet)
 	transactions := new([]models.Transaction)
 
-	query := as.Db.Model(transactions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)
+	query := as.Db.Model(transactions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType")
 
 	if walletId != "" {
 		query.Where("? = ?", pg.Ident("wallet_id"), walletId)
@@ -66,12 +66,25 @@ func (as *WalletService) GetHeader(am *models.Auth, embed string, walletId strin
 
 	for _, trans := range *transactions {
 		if trans.TransactionDate.Before(firstOfNextMonth) && trans.TransactionDate.After(firstOfMonth) {
-			currentBalance += trans.Amount
+			if trans.TransactionType.Type == "expense" {
+				currentBalance -= trans.Amount
+			} else {
+				currentBalance += trans.Amount
+			}
 		} else if trans.TransactionDate.Before(firstOfMonthAfterNext) && trans.TransactionDate.After(firstOfNextMonth) {
-			nextMonth += trans.Amount
+			if trans.TransactionType.Type == "expense" {
+				nextMonth -= trans.Amount
+			} else {
+				nextMonth += trans.Amount
+			}
 		} else if trans.TransactionDate.Before(firstOfMonth) {
-			lastMonthBalance += trans.Amount
-			currentBalance += trans.Amount
+			if trans.TransactionType.Type == "expense" {
+				lastMonthBalance -= trans.Amount
+				currentBalance -= trans.Amount
+			} else {
+				lastMonthBalance += trans.Amount
+				currentBalance += trans.Amount
+			}
 		}
 	}
 
