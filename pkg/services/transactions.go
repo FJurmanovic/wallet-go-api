@@ -32,10 +32,10 @@ func (as *TransactionService) New(body *models.NewTransactionBody) *models.Trans
 	return tm
 }
 
-func (as *TransactionService) GetAll(walletId string, filtered *models.FilteredResponse) {
+func (as *TransactionService) GetAll(am *models.Auth, walletId string, filtered *models.FilteredResponse) {
 	wm := new([]models.Transaction)
 
-	query := as.Db.Model((wm))
+	query := as.Db.Model((wm)).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)
 	if walletId != "" {
 		query = query.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}

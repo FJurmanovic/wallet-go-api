@@ -34,10 +34,14 @@ func (wc *TransactionController) New(c *gin.Context) {
 }
 
 func (wc *TransactionController) GetAll(c *gin.Context) {
+	body := new(models.Auth)
+	auth := c.MustGet("auth")
+	body.Id = auth.(*models.Auth).Id
+
 	fr := FilteredResponse(c)
 	wallet, _ := c.GetQuery("walletId")
 
-	wc.TransactionService.GetAll(wallet, fr)
+	wc.TransactionService.GetAll(body, wallet, fr)
 
 	c.JSON(200, fr)
 }
