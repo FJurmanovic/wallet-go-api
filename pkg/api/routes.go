@@ -15,7 +15,7 @@ func Routes(s *gin.Engine, db *pg.DB) {
 
 	api := ver.Group("api")
 	auth := ver.Group("auth")
-	wallet := ver.Group("wallet", middleware.Auth)
+	wallet := ver.Group("wallet", middleware.CORSMiddleware(), middleware.Auth)
 	walletHeader := wallet.Group("wallet-header", middleware.Auth)
 	transaction := ver.Group("transaction", middleware.Auth)
 	transactionType := ver.Group("transaction-type", middleware.Auth)
