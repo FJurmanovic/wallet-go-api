@@ -20,3 +20,8 @@ type WalletHeader struct {
 	NextMonth      int    `json:"nextMonth"`
 	Currency       string `json:"currency"`
 }
+
+type WalletTransactions struct {
+	WalletId     string
+	Transactions []Transaction
+}
