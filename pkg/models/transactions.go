@@ -15,6 +15,8 @@ type Transaction struct {
 	Amount            int              `json:"amount", pg:"amount"`
 	Wallet            *Wallet          `json:"wallet" pg:"rel:has-one, fk:wallet_id"`
 	TransactionDate   time.Time        `json:"transactionDate" pg:"transaction_date"`
+	SubscriptionID    string           `json:"subscriptionId", pg:"subscription_id"`
+	Subscription      *Subscription    `json:"subscription", pg:"rel:has-one, fk:subscription_id"`
 }
 
 type NewTransactionBody struct {
