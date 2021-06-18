@@ -111,7 +111,7 @@ func CreateToken(user *models.User) (string, error) {
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true
 	atClaims["id"] = user.Id
-	atClaims["exp"] = time.Now().Add(time.Minute).Unix()
+	atClaims["exp"] = time.Now().Add(time.Hour * 2).Unix()
 
 	secret := os.Getenv("ACCESS_SECRET")
 	if secret == "" {
