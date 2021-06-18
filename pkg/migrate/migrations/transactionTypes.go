@@ -32,3 +32,22 @@ func (am *TransactionTypesMigration) Create() error {
 	}
 	return nil
 }
+
+func (am *TransactionTypesMigration) Populate() error {
+	gain := new(models.TransactionType)
+	expense := new(models.TransactionType)
+
+	gain.Init()
+	gain.Name = "Gain"
+	gain.Type = "gain"
+
+	expense.Init()
+	expense.Name = "Expense"
+	expense.Type = "expense"
+
+	_, err := am.Db.Model(gain).Where("? = ?", pg.Ident("type"), gain.Type).SelectOrInsert()
+
+	_, err = am.Db.Model(expense).Where("? = ?", pg.Ident("type"), expense.Type).SelectOrInsert()
+
+	return err
+}

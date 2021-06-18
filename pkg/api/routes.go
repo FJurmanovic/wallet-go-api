@@ -19,12 +19,16 @@ func Routes(s *gin.Engine, db *pg.DB) {
 	walletHeader := ver.Group("wallet/wallet-header", middleware.Auth)
 	transaction := ver.Group("transaction", middleware.Auth)
 	transactionType := ver.Group("transaction-type", middleware.Auth)
+	subscription := ver.Group("subscription", middleware.Auth)
+	subscriptionType := ver.Group("subscription-type", middleware.Auth)
 
 	apiService := services.ApiService{Db: db}
 	usersService := services.UsersService{Db: db}
 	walletService := services.WalletService{Db: db}
 	transactionService := services.TransactionService{Db: db}
 	transactionTypeService := services.TransactionTypeService{Db: db}
+	subscriptionService := services.SubscriptionService{Db: db}
+	subscriptionTypeService := services.SubscriptionTypeService{Db: db}
 
 	controllers.NewApiController(&apiService, api)
 	controllers.NewAuthController(&usersService, auth)
@@ -32,4 +36,6 @@ func Routes(s *gin.Engine, db *pg.DB) {
 	controllers.NewWalletsHeaderController(&walletService, walletHeader)
 	controllers.NewTransactionController(&transactionService, transaction)
 	controllers.NewTransactionTypeController(&transactionTypeService, transactionType)
+	controllers.NewSubscriptionController(&subscriptionService, subscription)
+	controllers.NewSubscriptionTypeController(&subscriptionTypeService, subscriptionType)
 }
