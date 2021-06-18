@@ -30,3 +30,16 @@ type NewSubscriptionBody struct {
 	Description        string      `json:"description" form:"description"`
 	Amount             json.Number `json:"amount" form:"amount"`
 }
+
+func (cm *Subscription) ToTrans() *Transaction {
+	trans := new(Transaction)
+	trans.Init()
+	trans.Amount = cm.Amount
+	trans.Description = cm.Description
+	trans.WalletID = cm.WalletID
+	trans.Wallet = cm.Wallet
+	trans.TransactionTypeID = cm.TransactionTypeID
+	trans.TransactionType = cm.TransactionType
+	trans.DateCreated = cm.DateCreated
+	return trans
+}
