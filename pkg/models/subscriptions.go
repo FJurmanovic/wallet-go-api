@@ -25,7 +25,7 @@ type NewSubscriptionBody struct {
 	WalletID           string      `json:"walletId" form:"walletId"`
 	TransactionTypeID  string      `json:"transactionTypeId" form:"transactionTypeId"`
 	SubscriptionTypeID string      `json:"subscriptionTypeId" pg:"subscription_type_id"`
-	CustomRange        int         `json:"customRange", pg:"custom_range"`
+	CustomRange        json.Number `json:"customRange", pg:"custom_range"`
 	StartDate          time.Time   `json:"startDate" pg:"start_date"`
 	Description        string      `json:"description" form:"description"`
 	Amount             json.Number `json:"amount" form:"amount"`

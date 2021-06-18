@@ -15,12 +15,13 @@ func (as *SubscriptionService) New(body *models.NewSubscriptionBody) *models.Sub
 	tm := new(models.Subscription)
 
 	amount, _ := body.Amount.Int64()
+	customRange, _ := body.CustomRange.Int64()
 
 	tm.Init()
 	tm.WalletID = body.WalletID
 	tm.TransactionTypeID = body.TransactionTypeID
 	tm.SubscriptionTypeID = body.SubscriptionTypeID
-	tm.CustomRange = body.CustomRange
+	tm.CustomRange = int(customRange)
 	tm.Description = body.Description
 	tm.StartDate = body.StartDate
 	tm.Amount = int(amount)
