@@ -89,10 +89,10 @@ func (as *WalletService) GetHeader(am *models.Auth, embed string, walletId strin
 	}
 
 	for _, sub := range *subscriptions {
-		startDate := sub.StartDate
+		startDate := sub.StartDate.Local()
 		stopDate := firstOfMonthAfterNext
 		if sub.HasEnd {
-			stopDate = sub.EndDate
+			stopDate = sub.EndDate.Local()
 		}
 		for startDate.Before(stopDate) {
 			trans := sub.ToTrans()
@@ -115,19 +115,19 @@ func (as *WalletService) GetHeader(am *models.Auth, embed string, walletId strin
 		go func() {
 			defer wg.Done()
 			for _, trans := range wallet.Transactions {
-				if trans.TransactionDate.Before(firstOfNextMonth) && trans.TransactionDate.After(firstOfMonth) {
+				if trans.TransactionDate.Local().Before(firstOfNextMonth) && trans.TransactionDate.Local().After(firstOfMonth) {
 					if trans.TransactionType.Type == "expense" {
 						currentBalance -= trans.Amount
 					} else {
 						currentBalance += trans.Amount
 					}
-				} else if trans.TransactionDate.Before(firstOfMonthAfterNext) && trans.TransactionDate.After(firstOfNextMonth) {
+				} else if trans.TransactionDate.Local().Before(firstOfMonthAfterNext) && trans.TransactionDate.Local().After(firstOfNextMonth) {
 					if trans.TransactionType.Type == "expense" {
 						nextMonth -= trans.Amount
 					} else {
 						nextMonth += trans.Amount
 					}
-				} else if trans.TransactionDate.Before(firstOfMonth) {
+				} else if trans.TransactionDate.Local().Before(firstOfMonth) {
 					if trans.TransactionType.Type == "expense" {
 						lastMonthBalance -= trans.Amount
 					} else {
