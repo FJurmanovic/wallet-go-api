@@ -19,12 +19,12 @@ func Start(conn *pg.DB) error {
 	err = usersMigration.Create()
 	err = walletsMigration.Create()
 	err = transactionTypesMigration.Create()
-	err = transactionsMigration.Create()
 	err = subscriptionTypesMigration.Create()
 	err = subscriptionsMigration.Create()
+	err = transactionsMigration.Create()
 
-	err = transactionTypesMigration.Populate()
 	err = subscriptionTypesMigration.Populate()
+	err = transactionTypesMigration.Populate()
 
 	return err
 }
