@@ -11,6 +11,7 @@ import (
 
 type WalletService struct {
 	Db *pg.DB
+	Ss *SubscriptionService
 }
 
 func (as *WalletService) New(am *models.NewWalletBody) *models.Wallet {
@@ -89,6 +90,7 @@ func (as *WalletService) GetHeader(am *models.Auth, embed string, walletId strin
 	}
 
 	for _, sub := range *subscriptions {
+		as.Ss.SubToTrans(&sub)
 		startDate := sub.StartDate.Local()
 		stopDate := firstOfMonthAfterNext
 		if sub.HasEnd {

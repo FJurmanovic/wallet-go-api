@@ -45,5 +45,6 @@ func (cm *Subscription) ToTrans() *Transaction {
 	trans.TransactionTypeID = cm.TransactionTypeID
 	trans.TransactionType = cm.TransactionType
 	trans.DateCreated = cm.DateCreated
+	trans.SubscriptionID = cm.Id
 	return trans
 }

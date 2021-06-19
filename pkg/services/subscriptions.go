@@ -46,3 +46,37 @@ func (as *SubscriptionService) GetAll(am *models.Auth, walletId string, filtered
 	}
 	FilteredResponse(query, wm, filtered)
 }
+
+func (as *SubscriptionService) SubToTrans(subModel *models.Subscription) {
+	now := time.Now()
+
+	currentYear, currentMonth, _ := now.Date()
+	currentLocation := now.Location()
+
+	firstOfNextMonth := time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, currentLocation)
+
+	startDate := subModel.StartDate.Local()
+	stopDate := firstOfNextMonth
+	if subModel.HasEnd && subModel.EndDate.Local().Before(firstOfNextMonth) {
+		stopDate = subModel.EndDate.Local()
+	}
+
+	for startDate.Before(stopDate) {
+		trans := subModel.ToTrans()
+		trans.TransactionDate = startDate
+		if startDate.After(subModel.LastTransactionDate) {
+			as.Db.Model(trans).Insert()
+			subModel.LastTransactionDate = trans.TransactionDate
+			as.Db.Model(subModel).WherePK().Update()
+		}
+		if subModel.SubscriptionType.Type == "monthly" {
+			startDate = startDate.AddDate(0, subModel.CustomRange, 0)
+		} else if subModel.SubscriptionType.Type == "weekly" {
+			startDate = startDate.AddDate(0, 0, 7*subModel.CustomRange)
+		} else if subModel.SubscriptionType.Type == "daily" {
+			startDate = startDate.AddDate(0, 0, subModel.CustomRange)
+		} else {
+			startDate = startDate.AddDate(subModel.CustomRange, 0, 0)
+		}
+	}
+}
