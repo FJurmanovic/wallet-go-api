@@ -24,6 +24,8 @@ func (as *SubscriptionService) New(body *models.NewSubscriptionBody) *models.Sub
 	tm.CustomRange = int(customRange)
 	tm.Description = body.Description
 	tm.StartDate = body.StartDate
+	tm.HasEnd = body.HasEnd
+	tm.EndDate = body.EndDate
 	tm.Amount = int(amount)
 
 	if body.StartDate.IsZero() {

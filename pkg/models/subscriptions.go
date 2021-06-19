@@ -10,6 +10,8 @@ type Subscription struct {
 	BaseModel
 	Description         string            `json:"description" pg:"description"`
 	StartDate           time.Time         `json:"startDate" pg:"start_date"`
+	EndDate             time.Time         `json:"endDate" pg:"end_date"`
+	HasEnd              bool              `json:"hasEnd" pg:"hasEnd"`
 	SubscriptionTypeID  string            `json:"subscriptionTypeId" pg:"subscription_type_id"`
 	SubscriptionType    *SubscriptionType `json:"subscriptionType", pg:"rel:has-one, fk:subscription_type_id"`
 	CustomRange         int               `json:"customRange", pg:"custom_range"`
@@ -27,6 +29,8 @@ type NewSubscriptionBody struct {
 	SubscriptionTypeID string      `json:"subscriptionTypeId" pg:"subscription_type_id"`
 	CustomRange        json.Number `json:"customRange", pg:"custom_range"`
 	StartDate          time.Time   `json:"startDate" pg:"start_date"`
+	EndDate            time.Time   `json:"endDate" pg:"end_date"`
+	HasEnd             bool        `json:"hasEnd" pg:"hasEnd"`
 	Description        string      `json:"description" form:"description"`
 	Amount             json.Number `json:"amount" form:"amount"`
 }
