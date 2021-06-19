@@ -90,7 +90,11 @@ func (as *WalletService) GetHeader(am *models.Auth, embed string, walletId strin
 
 	for _, sub := range *subscriptions {
 		startDate := sub.StartDate
-		for startDate.Before(firstOfMonthAfterNext) {
+		stopDate := firstOfMonthAfterNext
+		if sub.HasEnd {
+			stopDate = sub.EndDate
+		}
+		for startDate.Before(stopDate) {
 			trans := sub.ToTrans()
 			trans.TransactionDate = startDate
 			addWhere(&wallets, sub.WalletID, *trans)
