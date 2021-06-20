@@ -31,6 +31,7 @@ func Routes(s *gin.Engine, db *pg.DB) {
 	subscriptionTypeService := services.SubscriptionTypeService{Db: db}
 
 	walletService.Ss = &subscriptionService
+	transactionService.Ss = &subscriptionService
 
 	controllers.NewApiController(&apiService, api)
 	controllers.NewAuthController(&usersService, auth)

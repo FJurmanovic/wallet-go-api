@@ -20,7 +20,7 @@ type Subscription struct {
 	TransactionTypeID   string            `json:"transactionTypeId", pg:"transaction_type_id"`
 	TransactionType     *TransactionType  `json:"transactionType", pg:"rel:has-one, fk:transaction_type_id"`
 	LastTransactionDate time.Time         `json:"lastTransactionDate", pg:"last_transaction_date"`
-	Amount              int               `json:"amount", pg:"amount"`
+	Amount              float32           `json:"amount", pg:"amount"`
 }
 
 type NewSubscriptionBody struct {

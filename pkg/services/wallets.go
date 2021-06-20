@@ -42,7 +42,7 @@ func (as *WalletService) GetAll(am *models.Auth, filtered *models.FilteredRespon
 
 func (as *WalletService) GetHeader(am *models.Auth, embed string, walletId string) *models.WalletHeader {
 	wm := new(models.WalletHeader)
-	var wallets []models.WalletTransactions
+	wallets := new([]models.WalletTransactions)
 	var wg sync.WaitGroup
 	transactions := new([]models.Transaction)
 	subscriptions := new([]models.Subscription)
@@ -68,14 +68,6 @@ func (as *WalletService) GetHeader(am *models.Auth, embed string, walletId strin
 
 	wg.Wait()
 
-	currentBalance := 0
-	lastMonthBalance := 0
-	nextMonth := 0
-
-	subCurrentBalance := 0
-	subLastMonthBalance := 0
-	subNextMonth := 0
-
 	now := time.Now()
 
 	currentYear, currentMonth, _ := now.Date()
@@ -86,58 +78,59 @@ func (as *WalletService) GetHeader(am *models.Auth, embed string, walletId strin
 	firstOfMonthAfterNext := time.Date(currentYear, currentMonth+2, 1, 0, 0, 0, 0, currentLocation)
 
 	for _, trans := range *transactions {
-		addWhere(&wallets, trans.WalletID, trans)
+		addWhere(wallets, trans.WalletID, trans)
 	}
 
 	for _, sub := range *subscriptions {
 		as.Ss.SubToTrans(&sub)
-		startDate := sub.StartDate.Local()
-		stopDate := firstOfMonthAfterNext
-		if sub.HasEnd {
-			stopDate = sub.EndDate.Local()
-		}
-		for startDate.Before(stopDate) {
-			trans := sub.ToTrans()
-			trans.TransactionDate = startDate
-			addWhere(&wallets, sub.WalletID, *trans)
-			if sub.SubscriptionType.Type == "monthly" {
-				startDate = startDate.AddDate(0, sub.CustomRange, 0)
-			} else if sub.SubscriptionType.Type == "weekly" {
-				startDate = startDate.AddDate(0, 0, 7*sub.CustomRange)
-			} else if sub.SubscriptionType.Type == "daily" {
-				startDate = startDate.AddDate(0, 0, sub.CustomRange)
-			} else {
-				startDate = startDate.AddDate(sub.CustomRange, 0, 0)
-			}
-		}
+		// startDate := sub.StartDate.Local()
+		// stopDate := firstOfMonthAfterNext
+		// if sub.HasEnd {
+		// 	stopDate = sub.EndDate.Local()
+		// }
+		// for startDate.Before(stopDate) {
+		// 	trans := sub.ToTrans()
+		// 	trans.TransactionDate = startDate
+		// 	addWhere(&wallets, sub.WalletID, *trans)
+		// 	if sub.SubscriptionType.Type == "monthly" {
+		// 		startDate = startDate.AddDate(0, sub.CustomRange, 0)
+		// 	} else if sub.SubscriptionType.Type == "weekly" {
+		// 		startDate = startDate.AddDate(0, 0, 7*sub.CustomRange)
+		// 	} else if sub.SubscriptionType.Type == "daily" {
+		// 		startDate = startDate.AddDate(0, 0, sub.CustomRange)
+		// 	} else {
+		// 		startDate = startDate.AddDate(sub.CustomRange, 0, 0)
+		// 	}
+		// }
 	}
 
-	for _, wallet := range wallets {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			for _, trans := range wallet.Transactions {
-				if trans.TransactionDate.Local().Before(firstOfNextMonth) && trans.TransactionDate.Local().After(firstOfMonth) {
-					if trans.TransactionType.Type == "expense" {
-						currentBalance -= trans.Amount
-					} else {
-						currentBalance += trans.Amount
-					}
-				} else if trans.TransactionDate.Local().Before(firstOfMonthAfterNext) && trans.TransactionDate.Local().After(firstOfNextMonth) {
-					if trans.TransactionType.Type == "expense" {
-						nextMonth -= trans.Amount
-					} else {
-						nextMonth += trans.Amount
-					}
-				} else if trans.TransactionDate.Local().Before(firstOfMonth) {
-					if trans.TransactionType.Type == "expense" {
-						lastMonthBalance -= trans.Amount
-					} else {
-						lastMonthBalance += trans.Amount
-					}
+	for i, wallet := range *wallets {
+		// wg.Add(1)
+		// go func() {
+		// 	defer wg.Done()
+		for _, trans := range wallet.Transactions {
+			if trans.TransactionDate.Local().Before(firstOfNextMonth) && trans.TransactionDate.Local().After(firstOfMonth) {
+				if trans.TransactionType.Type == "expense" {
+					(*wallets)[i].CurrentBalance -= trans.Amount
+				} else {
+					(*wallets)[i].CurrentBalance += trans.Amount
+				}
+			} else if trans.TransactionDate.Local().Before(firstOfMonthAfterNext) && trans.TransactionDate.Local().After(firstOfNextMonth) {
+				if trans.TransactionType.Type == "expense" {
+					(*wallets)[i].NextMonth -= trans.Amount
+				} else {
+					(*wallets)[i].NextMonth += trans.Amount
+				}
+			} else if trans.TransactionDate.Local().Before(firstOfMonth) {
+				if trans.TransactionType.Type == "expense" {
+					(*wallets)[i].LastMonth -= trans.Amount
+				} else {
+					(*wallets)[i].LastMonth += trans.Amount
 				}
 			}
-		}()
+
+		}
+		// }()
 	}
 
 	// for _, sub := range *subscriptions {
@@ -173,13 +166,12 @@ func (as *WalletService) GetHeader(am *models.Auth, embed string, walletId strin
 
 	wg.Wait()
 
-	combinedCurrent := currentBalance + subCurrentBalance
-	combinedLast := lastMonthBalance + subLastMonthBalance
-	combinedNext := nextMonth + subNextMonth
+	for _, wallet := range *wallets {
+		wm.LastMonth += wallet.LastMonth
+		wm.CurrentBalance += wallet.CurrentBalance + wallet.LastMonth
+		wm.NextMonth += wallet.NextMonth + wallet.CurrentBalance + wallet.LastMonth
+	}
 
-	wm.LastMonth = combinedLast
-	wm.CurrentBalance = combinedCurrent + combinedLast
-	wm.NextMonth = combinedLast + combinedCurrent + combinedNext
 	wm.Currency = "USD"
 	wm.WalletId = walletId
 
@@ -193,8 +185,8 @@ func addWhere(s *[]models.WalletTransactions, walletId string, e models.Transact
 	for a, _ := range *s {
 		if (*s)[a].WalletId == walletId {
 			(*s)[a].Transactions = append((*s)[a].Transactions, e)
+			exists = true
 		}
-		exists = true
 	}
 	if !exists {
 		var walletTransaction models.WalletTransactions

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"math"
 	"time"
 	"wallet-api/pkg/models"
 
@@ -14,7 +15,7 @@ type SubscriptionService struct {
 func (as *SubscriptionService) New(body *models.NewSubscriptionBody) *models.Subscription {
 	tm := new(models.Subscription)
 
-	amount, _ := body.Amount.Int64()
+	amount, _ := body.Amount.Float64()
 	customRange, _ := body.CustomRange.Int64()
 
 	tm.Init()
@@ -26,13 +27,15 @@ func (as *SubscriptionService) New(body *models.NewSubscriptionBody) *models.Sub
 	tm.StartDate = body.StartDate
 	tm.HasEnd = body.HasEnd
 	tm.EndDate = body.EndDate
-	tm.Amount = int(amount)
+	tm.Amount = float32(math.Round(amount*100) / 100)
 
 	if body.StartDate.IsZero() {
 		tm.StartDate = time.Now()
 	}
 
 	as.Db.Model(tm).Insert()
+
+	as.SubToTrans(tm)
 
 	return tm
 }
@@ -61,13 +64,19 @@ func (as *SubscriptionService) SubToTrans(subModel *models.Subscription) {
 		stopDate = subModel.EndDate.Local()
 	}
 
+	transactions := new([]models.Transaction)
+
+	if subModel.SubscriptionType == nil {
+		st := new(models.SubscriptionType)
+		as.Db.Model(st).Where("? = ?", pg.Ident("id"), subModel.SubscriptionTypeID).Select()
+		subModel.SubscriptionType = st
+	}
+
 	for startDate.Before(stopDate) {
 		trans := subModel.ToTrans()
 		trans.TransactionDate = startDate
 		if startDate.After(subModel.LastTransactionDate) {
-			as.Db.Model(trans).Insert()
-			subModel.LastTransactionDate = trans.TransactionDate
-			as.Db.Model(subModel).WherePK().Update()
+			*transactions = append(*transactions, *trans)
 		}
 		if subModel.SubscriptionType.Type == "monthly" {
 			startDate = startDate.AddDate(0, subModel.CustomRange, 0)
@@ -78,5 +87,12 @@ func (as *SubscriptionService) SubToTrans(subModel *models.Subscription) {
 		} else {
 			startDate = startDate.AddDate(subModel.CustomRange, 0, 0)
 		}
+	}
+
+	if len(*transactions) > 0 {
+		as.Db.Model(transactions).Insert()
+		subModel.LastTransactionDate = (*transactions)[len(*transactions)-1].TransactionDate
+		as.Db.Model(subModel).WherePK().Update()
+
 	}
 }
