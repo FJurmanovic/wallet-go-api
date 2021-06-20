@@ -90,9 +90,11 @@ func (as *SubscriptionService) SubToTrans(subModel *models.Subscription) {
 	}
 
 	if len(*transactions) > 0 {
-		as.Db.Model(transactions).Insert()
-		subModel.LastTransactionDate = (*transactions)[len(*transactions)-1].TransactionDate
-		as.Db.Model(subModel).WherePK().Update()
-
+		for _, trans := range *transactions {
+			_, err := as.Db.Model(&trans).Where("? = ?", pg.Ident("transaction_date"), trans.TransactionDate).Where("? = ?", pg.Ident("subscription_id"), trans.SubscriptionID).OnConflict("DO NOTHING").SelectOrInsert()
+			if err != nil {
+				as.Db.Model(subModel).Set("? = ?", pg.Ident("last_transaction_date"), trans.TransactionDate).WherePK().Update()
+			}
+		}
 	}
 }
