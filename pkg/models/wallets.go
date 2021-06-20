@@ -14,14 +14,17 @@ type NewWalletBody struct {
 }
 
 type WalletHeader struct {
-	WalletId       string `json:"walletId"`
-	CurrentBalance int    `json:"currentBalance"`
-	LastMonth      int    `json:"lastMonth"`
-	NextMonth      int    `json:"nextMonth"`
-	Currency       string `json:"currency"`
+	WalletId       string  `json:"walletId"`
+	CurrentBalance float32 `json:"currentBalance"`
+	LastMonth      float32 `json:"lastMonth"`
+	NextMonth      float32 `json:"nextMonth"`
+	Currency       string  `json:"currency"`
 }
 
 type WalletTransactions struct {
-	WalletId     string
-	Transactions []Transaction
+	WalletId       string
+	Transactions   []Transaction
+	CurrentBalance float32
+	LastMonth      float32
+	NextMonth      float32
 }
