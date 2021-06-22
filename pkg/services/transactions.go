@@ -42,6 +42,7 @@ func (as *TransactionService) GetAll(am *models.Auth, walletId string, filtered 
 	if walletId != "" {
 		query2 = query2.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
+	query2.Select()
 
 	for _, sub := range *sm {
 		as.Ss.SubToTrans(&sub)

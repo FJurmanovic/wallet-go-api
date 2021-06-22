@@ -55,7 +55,7 @@ func CheckToken(tokenString string) (*jwt.Token, error) {
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
 		var err error
 		if !ok {
-			err = errors.New("Invalid token")
+			err = errors.New("invalid token")
 		}
 		return []byte(secret), err
 	})

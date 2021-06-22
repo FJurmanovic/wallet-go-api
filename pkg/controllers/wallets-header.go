@@ -23,13 +23,12 @@ func NewWalletsHeaderController(as *services.WalletService, s *gin.RouterGroup) 
 func (wc *WalletsHeaderController) Get(c *gin.Context) {
 	body := new(models.Auth)
 
-	embed, _ := c.GetQuery("embed")
 	walletId, _ := c.GetQuery("walletId")
 
 	auth := c.MustGet("auth")
 	body.Id = auth.(*models.Auth).Id
 
-	wm := wc.WalletService.GetHeader(body, embed, walletId)
+	wm := wc.WalletService.GetHeader(body, walletId)
 
 	c.JSON(200, wm)
 }

@@ -40,7 +40,7 @@ func (as *WalletService) GetAll(am *models.Auth, filtered *models.FilteredRespon
 	FilteredResponse(query, wm, filtered)
 }
 
-func (as *WalletService) GetHeader(am *models.Auth, embed string, walletId string) *models.WalletHeader {
+func (as *WalletService) GetHeader(am *models.Auth, walletId string) *models.WalletHeader {
 	wm := new(models.WalletHeader)
 	wallets := new([]models.WalletTransactions)
 	var wg sync.WaitGroup
@@ -117,7 +117,7 @@ func (as *WalletService) GetHeader(am *models.Auth, embed string, walletId strin
 
 func addWhere(s *[]models.WalletTransactions, walletId string, e models.Transaction) {
 	var exists bool
-	for a, _ := range *s {
+	for a := range *s {
 		if (*s)[a].WalletId == walletId {
 			(*s)[a].Transactions = append((*s)[a].Transactions, e)
 			exists = true
