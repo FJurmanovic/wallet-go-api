@@ -47,6 +47,12 @@ func (as *SubscriptionService) GetAll(am *models.Auth, walletId string, filtered
 	if walletId != "" {
 		query = query.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
+
+	for _, sub := range *wm {
+		if sub.HasNew() {
+			as.SubToTrans(&sub)
+		}
+	}
 	FilteredResponse(query, wm, filtered)
 }
 
