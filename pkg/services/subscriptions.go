@@ -75,7 +75,7 @@ func (as *SubscriptionService) SubToTrans(subModel *models.Subscription) {
 	for startDate.Before(stopDate) {
 		trans := subModel.ToTrans()
 		trans.TransactionDate = startDate
-		if startDate.After(subModel.LastTransactionDate) {
+		if startDate.After(subModel.LastTransactionDate) && (startDate.Before(now) || startDate.Equal(now)) {
 			*transactions = append(*transactions, *trans)
 		}
 		if subModel.SubscriptionType.Type == "monthly" {

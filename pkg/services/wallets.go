@@ -63,7 +63,9 @@ func (as *WalletService) GetHeader(am *models.Auth, walletId string) *models.Wal
 	firstOfMonthAfterNext := time.Date(currentYear, currentMonth+2, 1, 0, 0, 0, 0, currentLocation)
 
 	for _, sub := range *subscriptions {
-		as.Ss.SubToTrans(&sub)
+		if sub.HasNew() {
+			as.Ss.SubToTrans(&sub)
+		}
 	}
 
 	query := as.Db.Model(transactions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType")
@@ -78,7 +80,7 @@ func (as *WalletService) GetHeader(am *models.Auth, walletId string) *models.Wal
 
 	for i, wallet := range *wallets {
 		for _, trans := range wallet.Transactions {
-			if trans.TransactionDate.Local().Before(firstOfNextMonth) && trans.TransactionDate.Local().After(firstOfMonth) {
+			if trans.TransactionDate.Local().Before(firstOfNextMonth) && trans.TransactionDate.Local().After(firstOfMonth) || trans.TransactionDate.Local().Equal(firstOfMonth) {
 				if trans.TransactionType.Type == "expense" {
 					(*wallets)[i].CurrentBalance -= trans.Amount
 				} else {
