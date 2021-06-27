@@ -80,19 +80,22 @@ func (as *WalletService) GetHeader(am *models.Auth, walletId string) *models.Wal
 
 	for i, wallet := range *wallets {
 		for _, trans := range wallet.Transactions {
-			if trans.TransactionDate.Local().Before(firstOfNextMonth) && trans.TransactionDate.Local().After(firstOfMonth) || trans.TransactionDate.Local().Equal(firstOfMonth) {
+			tzFirstOfMonthAfterNext := firstOfMonthAfterNext.In(trans.TransactionDate.Location())
+			tzFirstOfNextMonth := firstOfNextMonth.In(trans.TransactionDate.Location())
+			tzFirstOfMonth := firstOfMonth.In(trans.TransactionDate.Location())
+			if trans.TransactionDate.Before(tzFirstOfNextMonth) && trans.TransactionDate.After(tzFirstOfMonth) || trans.TransactionDate.Equal(tzFirstOfMonth) {
 				if trans.TransactionType.Type == "expense" {
 					(*wallets)[i].CurrentBalance -= trans.Amount
 				} else {
 					(*wallets)[i].CurrentBalance += trans.Amount
 				}
-			} else if trans.TransactionDate.Local().Before(firstOfMonthAfterNext) && trans.TransactionDate.Local().After(firstOfNextMonth) {
+			} else if trans.TransactionDate.Before(tzFirstOfMonthAfterNext) && trans.TransactionDate.After(tzFirstOfNextMonth) {
 				if trans.TransactionType.Type == "expense" {
 					(*wallets)[i].NextMonth -= trans.Amount
 				} else {
 					(*wallets)[i].NextMonth += trans.Amount
 				}
-			} else if trans.TransactionDate.Local().Before(firstOfMonth) {
+			} else if trans.TransactionDate.Before(tzFirstOfMonth) {
 				if trans.TransactionType.Type == "expense" {
 					(*wallets)[i].LastMonth -= trans.Amount
 				} else {

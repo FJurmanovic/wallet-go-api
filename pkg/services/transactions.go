@@ -22,7 +22,7 @@ func (as *TransactionService) New(body *models.NewTransactionBody) *models.Trans
 	tm.WalletID = body.WalletID
 	tm.TransactionTypeID = body.TransactionTypeID
 	tm.Description = body.Description
-	tm.TransactionDate = body.TransactionDate.Local()
+	tm.TransactionDate = body.TransactionDate
 	tm.Amount = float32(math.Round(amount*100) / 100)
 
 	if body.TransactionDate.IsZero() {

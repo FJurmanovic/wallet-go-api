@@ -24,9 +24,9 @@ func (as *SubscriptionService) New(body *models.NewSubscriptionBody) *models.Sub
 	tm.SubscriptionTypeID = body.SubscriptionTypeID
 	tm.CustomRange = int(customRange)
 	tm.Description = body.Description
-	tm.StartDate = body.StartDate.Local()
+	tm.StartDate = body.StartDate
 	tm.HasEnd = body.HasEnd
-	tm.EndDate = body.EndDate.Local()
+	tm.EndDate = body.EndDate
 	tm.Amount = float32(math.Round(amount*100) / 100)
 
 	if body.StartDate.IsZero() {
@@ -63,11 +63,12 @@ func (as *SubscriptionService) SubToTrans(subModel *models.Subscription) {
 	currentLocation := now.Location()
 
 	firstOfNextMonth := time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, currentLocation)
+	tzFirstOfNextMonth := firstOfNextMonth.In(subModel.StartDate.Location())
 
-	startDate := subModel.StartDate.Local()
-	stopDate := firstOfNextMonth
-	if subModel.HasEnd && subModel.EndDate.Local().Before(firstOfNextMonth) {
-		stopDate = subModel.EndDate.Local()
+	startDate := subModel.StartDate
+	stopDate := tzFirstOfNextMonth
+	if subModel.HasEnd && subModel.EndDate.Before(tzFirstOfNextMonth) {
+		stopDate = subModel.EndDate
 	}
 
 	transactions := new([]models.Transaction)
