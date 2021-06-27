@@ -14,7 +14,7 @@ type Transaction struct {
 	WalletID          string           `json:"walletId", pg:"wallet_id"`
 	Amount            float32          `json:"amount", pg:"amount"`
 	Wallet            *Wallet          `json:"wallet" pg:"rel:has-one, fk:wallet_id"`
-	TransactionDate   time.Time        `json:"transactionDate" pg:"transaction_date"`
+	TransactionDate   time.Time        `json:"transactionDate" pg:"transaction_date, type:timestamp"`
 	SubscriptionID    string           `json:"subscriptionId", pg:"subscription_id"`
 	Subscription      *Subscription    `json:"subscription", pg:"rel:has-one, fk:subscription_id"`
 }

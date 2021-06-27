@@ -24,9 +24,9 @@ func (as *SubscriptionService) New(body *models.NewSubscriptionBody) *models.Sub
 	tm.SubscriptionTypeID = body.SubscriptionTypeID
 	tm.CustomRange = int(customRange)
 	tm.Description = body.Description
-	tm.StartDate = body.StartDate
+	tm.StartDate = body.StartDate.Local()
 	tm.HasEnd = body.HasEnd
-	tm.EndDate = body.EndDate
+	tm.EndDate = body.EndDate.Local()
 	tm.Amount = float32(math.Round(amount*100) / 100)
 
 	if body.StartDate.IsZero() {

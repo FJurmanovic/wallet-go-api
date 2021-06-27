@@ -9,8 +9,8 @@ type Subscription struct {
 	tableName struct{} `pg:"subscriptions,alias:subscriptions"`
 	BaseModel
 	Description         string            `json:"description" pg:"description"`
-	StartDate           time.Time         `json:"startDate" pg:"start_date"`
-	EndDate             time.Time         `json:"endDate" pg:"end_date"`
+	StartDate           time.Time         `json:"startDate" pg:"start_date", type:timestamp`
+	EndDate             time.Time         `json:"endDate" pg:"end_date", type:timestamp`
 	HasEnd              bool              `json:"hasEnd" pg:"hasEnd"`
 	SubscriptionTypeID  string            `json:"subscriptionTypeId" pg:"subscription_type_id"`
 	SubscriptionType    *SubscriptionType `json:"subscriptionType", pg:"rel:has-one, fk:subscription_type_id"`
@@ -19,7 +19,7 @@ type Subscription struct {
 	Wallet              *Wallet           `json:"wallet" pg:"rel:has-one, fk:wallet_id"`
 	TransactionTypeID   string            `json:"transactionTypeId", pg:"transaction_type_id"`
 	TransactionType     *TransactionType  `json:"transactionType", pg:"rel:has-one, fk:transaction_type_id"`
-	LastTransactionDate time.Time         `json:"lastTransactionDate", pg:"last_transaction_date"`
+	LastTransactionDate time.Time         `json:"lastTransactionDate", pg:"last_transaction_date", type:timestamp`
 	Amount              float32           `json:"amount", pg:"amount"`
 }
 
