@@ -4,9 +4,9 @@ type User struct {
 	tableName struct{} `pg:"users,alias:users"`
 	BaseModel
 	IsActive bool   `json:"isActive" pg:"is_active" form:"isActive"`
-	Username string `json:"username" pg:"username" form:"username"`
-	Password string `json:"password" pg:"password" form:"password"`
-	Email    string `json:"email" pg:"email" form:"email"`
+	Username string `json:"username" pg:"username,notnull" form:"username"`
+	Password string `json:"password" pg:"password,notnull" form:"password"`
+	Email    string `json:"email" pg:"email,notnull" form:"email"`
 }
 
 type UserReturnInfo struct {

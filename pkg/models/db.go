@@ -7,7 +7,7 @@ import (
 )
 
 type BaseModel struct {
-	Id          string    `json:"id" pg:"id,pk"`
+	Id          string    `json:"id" pg:"id,pk,notnull"`
 	DateCreated time.Time `json:"dateCreated" pg:"date_created"`
 	DateUpdated time.Time `json:"dateUpdated" pg:"date_updated"`
 }

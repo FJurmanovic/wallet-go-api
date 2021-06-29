@@ -12,9 +12,9 @@ type Transaction struct {
 	TransactionTypeID string           `json:"transactionTypeId", pg:"transaction_type_id"`
 	TransactionType   *TransactionType `json:"transactionType", pg:"rel:has-one, fk:transaction_type_id"`
 	WalletID          string           `json:"walletId", pg:"wallet_id"`
-	Amount            float32          `json:"amount", pg:"amount"`
+	Amount            float32          `json:"amount", pg:"amount,default:0"`
 	Wallet            *Wallet          `json:"wallet" pg:"rel:has-one, fk:wallet_id"`
-	TransactionDate   time.Time        `json:"transactionDate" pg:"transaction_date, type:timestamp"`
+	TransactionDate   time.Time        `json:"transactionDate" pg:"transaction_date, type:timestamptz"`
 	SubscriptionID    string           `json:"subscriptionId", pg:"subscription_id"`
 	Subscription      *Subscription    `json:"subscription", pg:"rel:has-one, fk:subscription_id"`
 }

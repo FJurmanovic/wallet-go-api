@@ -4,7 +4,7 @@ type SubscriptionType struct {
 	tableName struct{} `pg:"subscriptionTypes,alias:subscriptionTypes"`
 	BaseModel
 	Name string `json:"name" pg:"name"`
-	Type string `json:"type" pg:"type"`
+	Type string `json:"type" pg:"type,notnull"`
 }
 
 type NewSubscriptionTypeBody struct {

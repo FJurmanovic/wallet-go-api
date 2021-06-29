@@ -4,7 +4,7 @@ type TransactionType struct {
 	tableName struct{} `pg:"transactionTypes,alias:transactionTypes"`
 	BaseModel
 	Name string `json:"name" pg:"name"`
-	Type string `json:"type" pg:"type"`
+	Type string `json:"type" pg:"type,notnull"`
 }
 
 type NewTransactionTypeBody struct {
