@@ -47,7 +47,10 @@ func (as *WalletService) GetHeader(am *models.Auth, walletId string) *models.Wal
 	transactions := new([]models.Transaction)
 	subscriptions := new([]models.Subscription)
 
-	query2 := as.Db.Model(subscriptions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType").Relation("SubscriptionType")
+	tx, _ := as.Db.Begin()
+	defer tx.Rollback()
+
+	query2 := tx.Model(subscriptions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType").Relation("SubscriptionType")
 	if walletId != "" {
 		query2.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
@@ -68,7 +71,7 @@ func (as *WalletService) GetHeader(am *models.Auth, walletId string) *models.Wal
 		}
 	}
 
-	query := as.Db.Model(transactions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType")
+	query := tx.Model(transactions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType")
 	if walletId != "" {
 		query.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
@@ -116,6 +119,8 @@ func (as *WalletService) GetHeader(am *models.Auth, walletId string) *models.Wal
 
 	wm.Currency = "USD"
 	wm.WalletId = walletId
+
+	tx.Commit()
 
 	return wm
 }

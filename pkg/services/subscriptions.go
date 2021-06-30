@@ -57,6 +57,9 @@ func (as *SubscriptionService) GetAll(am *models.Auth, walletId string, filtered
 }
 
 func (as *SubscriptionService) SubToTrans(subModel *models.Subscription) {
+	tx, _ := as.Db.Begin()
+	defer tx.Rollback()
+
 	now := time.Now()
 
 	currentYear, currentMonth, _ := now.Date()
@@ -75,7 +78,7 @@ func (as *SubscriptionService) SubToTrans(subModel *models.Subscription) {
 
 	if subModel.SubscriptionType == nil {
 		st := new(models.SubscriptionType)
-		as.Db.Model(st).Where("? = ?", pg.Ident("id"), subModel.SubscriptionTypeID).Select()
+		tx.Model(st).Where("? = ?", pg.Ident("id"), subModel.SubscriptionTypeID).Select()
 		subModel.SubscriptionType = st
 	}
 
@@ -98,10 +101,11 @@ func (as *SubscriptionService) SubToTrans(subModel *models.Subscription) {
 
 	if len(*transactions) > 0 {
 		for _, trans := range *transactions {
-			_, err := as.Db.Model(&trans).Where("? = ?", pg.Ident("transaction_date"), trans.TransactionDate).Where("? = ?", pg.Ident("subscription_id"), trans.SubscriptionID).OnConflict("DO NOTHING").SelectOrInsert()
+			_, err := tx.Model(&trans).Where("? = ?", pg.Ident("transaction_date"), trans.TransactionDate).Where("? = ?", pg.Ident("subscription_id"), trans.SubscriptionID).OnConflict("DO NOTHING").SelectOrInsert()
 			if err != nil {
-				as.Db.Model(subModel).Set("? = ?", pg.Ident("last_transaction_date"), trans.TransactionDate).WherePK().Update()
+				tx.Model(subModel).Set("? = ?", pg.Ident("last_transaction_date"), trans.TransactionDate).WherePK().Update()
 			}
 		}
 	}
+	tx.Commit()
 }

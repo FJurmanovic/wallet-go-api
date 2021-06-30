@@ -21,7 +21,10 @@ func (us *UsersService) Create(registerBody *models.User) (*models.User, *models
 	check := new(models.User)
 	exceptionReturn := new(models.Exception)
 
-	us.Db.Model(check).Where("? = ?", pg.Ident("username"), registerBody.Username).WhereOr("? = ?", pg.Ident("email"), registerBody.Email).Select()
+	tx, _ := us.Db.Begin()
+	defer tx.Rollback()
+
+	tx.Model(check).Where("? = ?", pg.Ident("username"), registerBody.Username).WhereOr("? = ?", pg.Ident("email"), registerBody.Email).Select()
 	if check.Username != "" || check.Email != "" {
 		exceptionReturn.Message = "User already exists"
 		exceptionReturn.ErrorCode = "400101"
@@ -33,13 +36,15 @@ func (us *UsersService) Create(registerBody *models.User) (*models.User, *models
 	common.CheckError(err)
 
 	registerBody.Password = string(hashedPassword)
-	_, err = us.Db.Model(registerBody).Insert()
+	_, err = tx.Model(registerBody).Insert()
 
 	if err != nil {
 		exceptionReturn.Message = "Error creating user"
 		exceptionReturn.ErrorCode = "400102"
 		exceptionReturn.StatusCode = 400
 	}
+
+	tx.Commit()
 
 	return registerBody, exceptionReturn
 }
@@ -84,7 +89,10 @@ func (us *UsersService) Deactivate(auth *models.Auth) (*models.MessageResponse, 
 	me := new(models.Exception)
 	um := new(models.User)
 
-	err := us.Db.Model(um).Where("? = ?", pg.Ident("id"), auth.Id).Select()
+	tx, _ := us.Db.Begin()
+	defer tx.Rollback()
+
+	err := tx.Model(um).Where("? = ?", pg.Ident("id"), auth.Id).Select()
 
 	if err != nil {
 		me.ErrorCode = "404101"
@@ -93,7 +101,7 @@ func (us *UsersService) Deactivate(auth *models.Auth) (*models.MessageResponse, 
 		return mm, me
 	}
 	um.IsActive = false
-	_, err = us.Db.Model(um).Where("? = ?", pg.Ident("id"), auth.Id).Update()
+	_, err = tx.Model(um).Where("? = ?", pg.Ident("id"), auth.Id).Update()
 
 	if err != nil {
 		me.ErrorCode = "400105"
@@ -103,6 +111,8 @@ func (us *UsersService) Deactivate(auth *models.Auth) (*models.MessageResponse, 
 	}
 
 	mm.Message = "User successfully deactivated."
+
+	tx.Commit()
 
 	return mm, me
 }
