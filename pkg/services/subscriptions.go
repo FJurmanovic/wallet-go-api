@@ -33,9 +33,13 @@ func (as *SubscriptionService) New(body *models.NewSubscriptionBody) *models.Sub
 		tm.StartDate = time.Now()
 	}
 
-	as.Db.Model(tm).Insert()
+	tx, _ := as.Db.Begin()
+	defer tx.Rollback()
 
-	as.SubToTrans(tm)
+	tx.Model(tm).Insert()
+
+	as.SubToTrans(tm, tx)
+	tx.Commit()
 
 	return tm
 }
@@ -43,22 +47,24 @@ func (as *SubscriptionService) New(body *models.NewSubscriptionBody) *models.Sub
 func (as *SubscriptionService) GetAll(am *models.Auth, walletId string, filtered *models.FilteredResponse) {
 	wm := new([]models.Subscription)
 
-	query := as.Db.Model(wm).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)
+	tx, _ := as.Db.Begin()
+	defer tx.Rollback()
+
+	query := tx.Model(wm).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)
 	if walletId != "" {
 		query = query.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
 
 	for _, sub := range *wm {
 		if sub.HasNew() {
-			as.SubToTrans(&sub)
+			as.SubToTrans(&sub, tx)
 		}
 	}
 	FilteredResponse(query, wm, filtered)
+	tx.Commit()
 }
 
-func (as *SubscriptionService) SubToTrans(subModel *models.Subscription) {
-	tx, _ := as.Db.Begin()
-	defer tx.Rollback()
+func (as *SubscriptionService) SubToTrans(subModel *models.Subscription, tx *pg.Tx) {
 
 	now := time.Now()
 
@@ -107,5 +113,4 @@ func (as *SubscriptionService) SubToTrans(subModel *models.Subscription) {
 			}
 		}
 	}
-	tx.Commit()
 }

@@ -48,13 +48,16 @@ func (as *TransactionService) GetAll(am *models.Auth, walletId string, filtered 
 	query2.Select()
 
 	for _, sub := range *sm {
-		as.Ss.SubToTrans(&sub)
+		if sub.HasNew() {
+			as.Ss.SubToTrans(&sub, tx)
+		}
 	}
 
 	query := tx.Model(wm).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)
 	if walletId != "" {
 		query = query.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
+
 	FilteredResponse(query, wm, filtered)
 
 	tx.Commit()

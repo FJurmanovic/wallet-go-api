@@ -67,7 +67,7 @@ func (as *WalletService) GetHeader(am *models.Auth, walletId string) *models.Wal
 
 	for _, sub := range *subscriptions {
 		if sub.HasNew() {
-			as.Ss.SubToTrans(&sub)
+			as.Ss.SubToTrans(&sub, tx)
 		}
 	}
 
