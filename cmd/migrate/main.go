@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"wallet-api/pkg/migrate"
 	"wallet-api/pkg/utl/db"
@@ -12,7 +13,8 @@ func main() {
 	godotenv.Load()
 
 	dbUrl := os.Getenv("DATABASE_URL")
+	ctx := context.Background()
 
-	conn := db.CreateConnection(dbUrl)
-	migrate.Start(conn)
+	conn := db.CreateConnection(dbUrl, ctx)
+	migrate.Start(conn, "")
 }

@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"sync"
 	"time"
 	"wallet-api/pkg/models"
@@ -14,40 +15,49 @@ type WalletService struct {
 	Ss *SubscriptionService
 }
 
-func (as *WalletService) New(am *models.NewWalletBody) *models.Wallet {
+func (as *WalletService) New(ctx context.Context, am *models.NewWalletBody) *models.Wallet {
+	db := as.Db.WithContext(ctx)
 
 	walletModel := new(models.Wallet)
 	walletModel.Init()
 	walletModel.UserID = am.UserID
 	walletModel.Name = am.Name
-	as.Db.Model(walletModel).Insert()
+	db.Model(walletModel).Insert()
 	return walletModel
 }
 
-func (as *WalletService) Get(am *models.Auth, embed string) *models.Wallet {
+func (as *WalletService) Get(ctx context.Context, am *models.Auth, embed string) *models.Wallet {
+	db := as.Db.WithContext(ctx)
+
 	wm := new(models.Wallet)
 
-	query := as.Db.Model(wm).Where("? = ?", pg.Ident("user_id"), am.Id)
+	query := db.Model(wm).Where("? = ?", pg.Ident("user_id"), am.Id)
 	common.GenerateEmbed(query, embed).Select()
 
 	return wm
 }
 
-func (as *WalletService) GetAll(am *models.Auth, filtered *models.FilteredResponse) {
+func (as *WalletService) GetAll(ctx context.Context, am *models.Auth, filtered *models.FilteredResponse) {
+	db := as.Db.WithContext(ctx)
 	wm := new([]models.Wallet)
 
-	query := as.Db.Model(wm).Where("? = ?", pg.Ident("user_id"), am.Id)
+	query := db.Model(wm).Where("? = ?", pg.Ident("user_id"), am.Id)
 	FilteredResponse(query, wm, filtered)
 }
 
-func (as *WalletService) GetHeader(am *models.Auth, walletId string) *models.WalletHeader {
+func (as *WalletService) GetHeader(ctx context.Context, am *models.Auth, walletId string) *models.WalletHeader {
+	db := as.Db.WithContext(ctx)
+
 	wm := new(models.WalletHeader)
 	wallets := new([]models.WalletTransactions)
 	var wg sync.WaitGroup
 	transactions := new([]models.Transaction)
 	subscriptions := new([]models.Subscription)
 
-	query2 := as.Db.Model(subscriptions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType").Relation("SubscriptionType")
+	tx, _ := db.Begin()
+	defer tx.Rollback()
+
+	query2 := tx.Model(subscriptions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType").Relation("SubscriptionType")
 	if walletId != "" {
 		query2.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
@@ -64,11 +74,11 @@ func (as *WalletService) GetHeader(am *models.Auth, walletId string) *models.Wal
 
 	for _, sub := range *subscriptions {
 		if sub.HasNew() {
-			as.Ss.SubToTrans(&sub)
+			as.Ss.SubToTrans(&sub, tx)
 		}
 	}
 
-	query := as.Db.Model(transactions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType")
+	query := tx.Model(transactions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType")
 	if walletId != "" {
 		query.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
@@ -80,22 +90,22 @@ func (as *WalletService) GetHeader(am *models.Auth, walletId string) *models.Wal
 
 	for i, wallet := range *wallets {
 		for _, trans := range wallet.Transactions {
-			tzFirstOfMonthAfterNext := firstOfMonthAfterNext.In(trans.TransactionDate.Location())
-			tzFirstOfNextMonth := firstOfNextMonth.In(trans.TransactionDate.Location())
-			tzFirstOfMonth := firstOfMonth.In(trans.TransactionDate.Location())
-			if trans.TransactionDate.Before(tzFirstOfNextMonth) && trans.TransactionDate.After(tzFirstOfMonth) || trans.TransactionDate.Equal(tzFirstOfMonth) {
+			// tzFirstOfMonthAfterNext := firstOfMonthAfterNext.In(trans.TransactionDate.Location())
+			// tzFirstOfNextMonth := firstOfNextMonth.In(trans.TransactionDate.Location())
+			// tzFirstOfMonth := firstOfMonth.In(trans.TransactionDate.Location())
+			if trans.TransactionDate.Before(firstOfMonth) && trans.TransactionDate.After(firstOfMonth) || trans.TransactionDate.Equal(firstOfMonth) {
 				if trans.TransactionType.Type == "expense" {
 					(*wallets)[i].CurrentBalance -= trans.Amount
 				} else {
 					(*wallets)[i].CurrentBalance += trans.Amount
 				}
-			} else if trans.TransactionDate.Before(tzFirstOfMonthAfterNext) && trans.TransactionDate.After(tzFirstOfNextMonth) {
+			} else if trans.TransactionDate.Before(firstOfMonthAfterNext) && trans.TransactionDate.After(firstOfNextMonth) {
 				if trans.TransactionType.Type == "expense" {
 					(*wallets)[i].NextMonth -= trans.Amount
 				} else {
 					(*wallets)[i].NextMonth += trans.Amount
 				}
-			} else if trans.TransactionDate.Before(tzFirstOfMonth) {
+			} else if trans.TransactionDate.Before(firstOfMonth) {
 				if trans.TransactionType.Type == "expense" {
 					(*wallets)[i].LastMonth -= trans.Amount
 				} else {
@@ -116,6 +126,8 @@ func (as *WalletService) GetHeader(am *models.Auth, walletId string) *models.Wal
 
 	wm.Currency = "USD"
 	wm.WalletId = walletId
+
+	tx.Commit()
 
 	return wm
 }

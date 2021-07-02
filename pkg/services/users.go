@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"os"
 	"time"
 	"wallet-api/pkg/models"
@@ -17,11 +18,16 @@ type UsersService struct {
 	Db *pg.DB
 }
 
-func (us *UsersService) Create(registerBody *models.User) (*models.User, *models.Exception) {
+func (us *UsersService) Create(ctx context.Context, registerBody *models.User) (*models.User, *models.Exception) {
+	db := us.Db.WithContext(ctx)
+
 	check := new(models.User)
 	exceptionReturn := new(models.Exception)
 
-	us.Db.Model(check).Where("? = ?", pg.Ident("username"), registerBody.Username).WhereOr("? = ?", pg.Ident("email"), registerBody.Email).Select()
+	tx, _ := db.Begin()
+	defer tx.Rollback()
+
+	tx.Model(check).Where("? = ?", pg.Ident("username"), registerBody.Username).WhereOr("? = ?", pg.Ident("email"), registerBody.Email).Select()
 	if check.Username != "" || check.Email != "" {
 		exceptionReturn.Message = "User already exists"
 		exceptionReturn.ErrorCode = "400101"
@@ -33,7 +39,7 @@ func (us *UsersService) Create(registerBody *models.User) (*models.User, *models
 	common.CheckError(err)
 
 	registerBody.Password = string(hashedPassword)
-	_, err = us.Db.Model(registerBody).Insert()
+	_, err = tx.Model(registerBody).Insert()
 
 	if err != nil {
 		exceptionReturn.Message = "Error creating user"
@@ -41,15 +47,19 @@ func (us *UsersService) Create(registerBody *models.User) (*models.User, *models
 		exceptionReturn.StatusCode = 400
 	}
 
+	tx.Commit()
+
 	return registerBody, exceptionReturn
 }
 
-func (us *UsersService) Login(loginBody *models.Login) (*models.Token, *models.Exception) {
+func (us *UsersService) Login(ctx context.Context, loginBody *models.Login) (*models.Token, *models.Exception) {
+	db := us.Db.WithContext(ctx)
+
 	check := new(models.User)
 	exceptionReturn := new(models.Exception)
 	tokenPayload := new(models.Token)
 
-	us.Db.Model(check).Where("? = ?", pg.Ident("email"), loginBody.Email).Select()
+	db.Model(check).Where("? = ?", pg.Ident("email"), loginBody.Email).Select()
 	if check.Email == "" {
 		exceptionReturn.Message = "Email not found"
 		exceptionReturn.ErrorCode = "400103"
@@ -79,12 +89,17 @@ func (us *UsersService) Login(loginBody *models.Login) (*models.Token, *models.E
 	return tokenPayload, exceptionReturn
 }
 
-func (us *UsersService) Deactivate(auth *models.Auth) (*models.MessageResponse, *models.Exception) {
+func (us *UsersService) Deactivate(ctx context.Context, auth *models.Auth) (*models.MessageResponse, *models.Exception) {
+	db := us.Db.WithContext(ctx)
+
 	mm := new(models.MessageResponse)
 	me := new(models.Exception)
 	um := new(models.User)
 
-	err := us.Db.Model(um).Where("? = ?", pg.Ident("id"), auth.Id).Select()
+	tx, _ := db.Begin()
+	defer tx.Rollback()
+
+	err := tx.Model(um).Where("? = ?", pg.Ident("id"), auth.Id).Select()
 
 	if err != nil {
 		me.ErrorCode = "404101"
@@ -93,7 +108,7 @@ func (us *UsersService) Deactivate(auth *models.Auth) (*models.MessageResponse, 
 		return mm, me
 	}
 	um.IsActive = false
-	_, err = us.Db.Model(um).Where("? = ?", pg.Ident("id"), auth.Id).Update()
+	_, err = tx.Model(um).Where("? = ?", pg.Ident("id"), auth.Id).Update()
 
 	if err != nil {
 		me.ErrorCode = "400105"
@@ -103,6 +118,8 @@ func (us *UsersService) Deactivate(auth *models.Auth) (*models.MessageResponse, 
 	}
 
 	mm.Message = "User successfully deactivated."
+
+	tx.Commit()
 
 	return mm, me
 }

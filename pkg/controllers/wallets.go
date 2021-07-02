@@ -33,7 +33,7 @@ func (wc *WalletsController) New(c *gin.Context) {
 	get := c.MustGet("auth")
 	body.UserID = get.(*models.Auth).Id
 
-	wm := wc.WalletService.New(body)
+	wm := wc.WalletService.New(c, body)
 	c.JSON(200, wm)
 }
 
@@ -44,7 +44,7 @@ func (wc *WalletsController) Get(c *gin.Context) {
 	auth := c.MustGet("auth")
 	body.Id = auth.(*models.Auth).Id
 
-	wm := wc.WalletService.Get(body, embed)
+	wm := wc.WalletService.Get(c, body, embed)
 
 	c.JSON(200, wm)
 }
@@ -56,7 +56,7 @@ func (wc *WalletsController) GetAll(c *gin.Context) {
 
 	fr := FilteredResponse(c)
 
-	wc.WalletService.GetAll(body, fr)
+	wc.WalletService.GetAll(c, body, fr)
 
 	c.JSON(200, fr)
 

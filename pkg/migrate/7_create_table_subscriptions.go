@@ -1,25 +1,20 @@
-package migrations
+package migrate
 
 import (
 	"fmt"
-	"log"
-	"wallet-api/pkg/models"
-
 	"github.com/go-pg/pg/v10"
 	"github.com/go-pg/pg/v10/orm"
+	"log"
+	"wallet-api/pkg/models"
 )
 
-type WalletsMigration struct {
-	Db *pg.DB
-}
-
-func (am *WalletsMigration) Create() error {
+func CreateTableSubscriptions(db pg.DB) error {
 	models := []interface{}{
-		(*models.Wallet)(nil),
+		(*models.Subscription)(nil),
 	}
 
 	for _, model := range models {
-		err := am.Db.Model(model).CreateTable(&orm.CreateTableOptions{
+		err := db.Model(model).CreateTable(&orm.CreateTableOptions{
 			IfNotExists:   false,
 			FKConstraints: true,
 		})

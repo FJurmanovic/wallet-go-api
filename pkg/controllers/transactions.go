@@ -29,7 +29,7 @@ func (wc *TransactionController) New(c *gin.Context) {
 		return
 	}
 
-	wm := wc.TransactionService.New(body)
+	wm := wc.TransactionService.New(c, body)
 	c.JSON(200, wm)
 }
 
@@ -41,7 +41,7 @@ func (wc *TransactionController) GetAll(c *gin.Context) {
 	fr := FilteredResponse(c)
 	wallet, _ := c.GetQuery("walletId")
 
-	wc.TransactionService.GetAll(body, wallet, fr)
+	wc.TransactionService.GetAll(c, body, wallet, fr)
 
 	c.JSON(200, fr)
 }

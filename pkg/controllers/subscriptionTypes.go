@@ -29,14 +29,14 @@ func (wc *SubscriptionTypeController) New(c *gin.Context) {
 		return
 	}
 
-	wm := wc.SubscriptionTypeService.New(body)
+	wm := wc.SubscriptionTypeService.New(c, body)
 	c.JSON(200, wm)
 }
 
 func (wc *SubscriptionTypeController) GetAll(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 
-	wm := wc.SubscriptionTypeService.GetAll(embed)
+	wm := wc.SubscriptionTypeService.GetAll(c, embed)
 
 	c.JSON(200, wm)
 }

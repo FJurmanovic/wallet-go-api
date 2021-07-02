@@ -50,31 +50,34 @@ func (cm *Subscription) ToTrans() *Transaction {
 }
 
 func (cm *Subscription) HasNew() bool {
-	trans := cm.TransactionType;
-	switch trans.Type {
-	case "monthly":
-		lastDate := time.Now().AddDate(0, -cm.CustomRange, 0)
-		if cm.LastTransactionDate.Before(lastDate) {
-			return true
+	trans := cm.TransactionType
+	if trans != nil {
+		switch trans.Type {
+		case "monthly":
+			lastDate := time.Now().AddDate(0, -cm.CustomRange, 0)
+			if cm.LastTransactionDate.Before(lastDate) {
+				return true
+			}
+			return false
+		case "weekly":
+			lastDate := time.Now().AddDate(0, 0, -(7*cm.CustomRange))
+			if cm.LastTransactionDate.Before(lastDate) {
+				return true
+			}
+			return false
+		case "daily":
+			lastDate := time.Now().AddDate(0, 0, -cm.CustomRange)
+			if cm.LastTransactionDate.Before(lastDate) {
+				return true
+			}
+			return false
+		default:
+			lastDate := time.Now().AddDate(-cm.CustomRange, 0, 0)
+			if cm.LastTransactionDate.Before(lastDate) {
+				return true
+			}
+			return false
 		}
-		return false
-	case "weekly":
-		lastDate := time.Now().AddDate(0, 0, -(7*cm.CustomRange))
-		if cm.LastTransactionDate.Before(lastDate) {
-			return true
-		}
-		return false
-	case "daily":
-		lastDate := time.Now().AddDate(0, 0, -cm.CustomRange)
-		if cm.LastTransactionDate.Before(lastDate) {
-			return true
-		}
-		return false
-	default:
-		lastDate := time.Now().AddDate(-cm.CustomRange, 0, 0)
-		if cm.LastTransactionDate.Before(lastDate) {
-			return true
-		}
-		return false
 	}
+	return true
 }
