@@ -38,19 +38,27 @@ func (as *TransactionService) GetAll(am *models.Auth, walletId string, filtered 
 	wm := new([]models.Transaction)
 	sm := new([]models.Subscription)
 
-	query2 := as.Db.Model(sm).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)
+	tx, _ := as.Db.Begin()
+	defer tx.Rollback()
+
+	query2 := tx.Model(sm).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)
 	if walletId != "" {
 		query2 = query2.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
 	query2.Select()
 
 	for _, sub := range *sm {
-		as.Ss.SubToTrans(&sub)
+		if sub.HasNew() {
+			as.Ss.SubToTrans(&sub, tx)
+		}
 	}
 
-	query := as.Db.Model(wm).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)
+	query := tx.Model(wm).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)
 	if walletId != "" {
 		query = query.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
+
 	FilteredResponse(query, wm, filtered)
+
+	tx.Commit()
 }

@@ -33,9 +33,13 @@ func (as *SubscriptionService) New(body *models.NewSubscriptionBody) *models.Sub
 		tm.StartDate = time.Now()
 	}
 
-	as.Db.Model(tm).Insert()
+	tx, _ := as.Db.Begin()
+	defer tx.Rollback()
 
-	as.SubToTrans(tm)
+	tx.Model(tm).Insert()
+
+	as.SubToTrans(tm, tx)
+	tx.Commit()
 
 	return tm
 }
@@ -43,20 +47,25 @@ func (as *SubscriptionService) New(body *models.NewSubscriptionBody) *models.Sub
 func (as *SubscriptionService) GetAll(am *models.Auth, walletId string, filtered *models.FilteredResponse) {
 	wm := new([]models.Subscription)
 
-	query := as.Db.Model(wm).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)
+	tx, _ := as.Db.Begin()
+	defer tx.Rollback()
+
+	query := tx.Model(wm).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)
 	if walletId != "" {
 		query = query.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
 
 	for _, sub := range *wm {
 		if sub.HasNew() {
-			as.SubToTrans(&sub)
+			as.SubToTrans(&sub, tx)
 		}
 	}
 	FilteredResponse(query, wm, filtered)
+	tx.Commit()
 }
 
-func (as *SubscriptionService) SubToTrans(subModel *models.Subscription) {
+func (as *SubscriptionService) SubToTrans(subModel *models.Subscription, tx *pg.Tx) {
+
 	now := time.Now()
 
 	currentYear, currentMonth, _ := now.Date()
@@ -75,7 +84,7 @@ func (as *SubscriptionService) SubToTrans(subModel *models.Subscription) {
 
 	if subModel.SubscriptionType == nil {
 		st := new(models.SubscriptionType)
-		as.Db.Model(st).Where("? = ?", pg.Ident("id"), subModel.SubscriptionTypeID).Select()
+		tx.Model(st).Where("? = ?", pg.Ident("id"), subModel.SubscriptionTypeID).Select()
 		subModel.SubscriptionType = st
 	}
 
@@ -98,9 +107,9 @@ func (as *SubscriptionService) SubToTrans(subModel *models.Subscription) {
 
 	if len(*transactions) > 0 {
 		for _, trans := range *transactions {
-			_, err := as.Db.Model(&trans).Where("? = ?", pg.Ident("transaction_date"), trans.TransactionDate).Where("? = ?", pg.Ident("subscription_id"), trans.SubscriptionID).OnConflict("DO NOTHING").SelectOrInsert()
+			_, err := tx.Model(&trans).Where("? = ?", pg.Ident("transaction_date"), trans.TransactionDate).Where("? = ?", pg.Ident("subscription_id"), trans.SubscriptionID).OnConflict("DO NOTHING").SelectOrInsert()
 			if err != nil {
-				as.Db.Model(subModel).Set("? = ?", pg.Ident("last_transaction_date"), trans.TransactionDate).WherePK().Update()
+				tx.Model(subModel).Set("? = ?", pg.Ident("last_transaction_date"), trans.TransactionDate).WherePK().Update()
 			}
 		}
 	}
