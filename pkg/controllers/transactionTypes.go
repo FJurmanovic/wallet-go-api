@@ -29,14 +29,14 @@ func (wc *TransactionTypeController) New(c *gin.Context) {
 		return
 	}
 
-	wm := wc.TransactionTypeService.New(body)
+	wm := wc.TransactionTypeService.New(c, body)
 	c.JSON(200, wm)
 }
 
 func (wc *TransactionTypeController) GetAll(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 
-	wm := wc.TransactionTypeService.GetAll(embed)
+	wm := wc.TransactionTypeService.GetAll(c, embed)
 
 	c.JSON(200, wm)
 }

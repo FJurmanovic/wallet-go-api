@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"wallet-api/pkg/api"
 	"wallet-api/pkg/middleware"
@@ -14,11 +15,12 @@ import (
 func main() {
 	godotenv.Load()
 
+	ctx := context.Background()
 	dbUrl := os.Getenv("DATABASE_URL")
 	r := gin.New()
 	r.Use(middleware.CORSMiddleware())
 
-	conn := db.CreateConnection(dbUrl)
+	conn := db.CreateConnection(dbUrl, ctx)
 	api.Init(r, conn)
 
 	server.Start(r)

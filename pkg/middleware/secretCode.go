@@ -16,24 +16,26 @@ func SecretCode(c *gin.Context) {
 	if secret == "" {
 		secret = configs.SecretCode
 	}
-	if secret != secretCode {
+	if secret != secretCode.SecretCode {
 		exceptionReturn.ErrorCode = "401101"
 		exceptionReturn.StatusCode = 401
 		exceptionReturn.Message = "Invalid secret code"
 		c.AbortWithStatusJSON(exceptionReturn.StatusCode, exceptionReturn)
 	}
+	c.Set("migrate", secretCode)
 	c.Next()
 }
 
-func ExtractCode(c *gin.Context) string {
+func ExtractCode(c *gin.Context) SecretCodeModel {
 	secret := new(SecretCodeModel)
 	if err := c.ShouldBindJSON(&secret); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return ""
+		return SecretCodeModel{}
 	}
-	return secret.SecretCode
+	return *secret
 }
 
 type SecretCodeModel struct {
 	SecretCode string `json:"secretCode"`
+	Version string `json:"version"`
 }

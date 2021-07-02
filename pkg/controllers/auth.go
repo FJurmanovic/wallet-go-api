@@ -31,7 +31,7 @@ func (rc *AuthController) PostLogin(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	returnedUser, exceptionReturn := rc.UsersService.Login(body)
+	returnedUser, exceptionReturn := rc.UsersService.Login(c, body)
 
 	if exceptionReturn.Message != "" {
 		c.JSON(exceptionReturn.StatusCode, exceptionReturn)
@@ -48,7 +48,7 @@ func (rc *AuthController) PostRegister(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	returnedUser, exceptionReturn := rc.UsersService.Create(body)
+	returnedUser, exceptionReturn := rc.UsersService.Create(c, body)
 
 	if exceptionReturn.Message != "" {
 		c.JSON(exceptionReturn.StatusCode, exceptionReturn)
@@ -61,7 +61,7 @@ func (rc *AuthController) Delete(c *gin.Context) {
 	authGet := c.MustGet("auth")
 	auth.Id = authGet.(*models.Auth).Id
 
-	mr, er := rc.UsersService.Deactivate(auth)
+	mr, er := rc.UsersService.Deactivate(c, auth)
 
 	if er.Message != "" {
 		c.JSON(er.StatusCode, er)

@@ -1,30 +1,49 @@
 package migrate
 
 import (
-	"wallet-api/pkg/migrate/migrations"
-
 	"github.com/go-pg/pg/v10"
 )
 
-func Start(conn *pg.DB) error {
-	apiMigration := migrations.ApiMigration{Db: conn}
-	usersMigration := migrations.UsersMigration{Db: conn}
-	walletsMigration := migrations.WalletsMigration{Db: conn}
-	transactionTypesMigration := migrations.TransactionTypesMigration{Db: conn}
-	transactionsMigration := migrations.TransactionsMigration{Db: conn}
-	subscriptionTypesMigration := migrations.SubscriptionTypesMigration{Db: conn}
-	subscriptionsMigration := migrations.SubscriptionsMigration{Db: conn}
+func Start(conn *pg.DB, version string) {
+	migration001 := Migration{
+		Version: "001",
+		Migrations: []interface{}{
+			CreateTableApi,
+			CreateTableUsers,
+			CreateTableWallets,
+			CreateTableTransactionTypes,
+			CreateTableTransactions,
+			CreateTableSubscriptionTypes,
+			CreateTableSubscriptions,
+		},
+	}
+	migration002 := Migration{
+		Version: "002",
+		Migrations: []interface{}{
+			PopulateSubscriptionTypes,
+			PopulateTransactionTypes,
+		},
+	}
 
-	err := apiMigration.Create()
-	err = usersMigration.Create()
-	err = walletsMigration.Create()
-	err = transactionTypesMigration.Create()
-	err = subscriptionTypesMigration.Create()
-	err = subscriptionsMigration.Create()
-	err = transactionsMigration.Create()
+	migrationsMap := []Migration{
+		migration001,
+		migration002,
+	}
 
-	err = subscriptionTypesMigration.Populate()
-	err = transactionTypesMigration.Populate()
-
-	return err
+	for _, migrationCol := range migrationsMap {
+		if version != "" && version == migrationCol.Version || version == "" {
+			for _, migration := range migrationCol.Migrations {
+				mgFunc, isFunc := migration.(func(pg.DB) error)
+				if isFunc {
+					mgFunc(*conn)
+				}
+			}
+		}
+	}
 }
+
+type Migration struct {
+	Version string
+	Migrations []interface{}
+}
+

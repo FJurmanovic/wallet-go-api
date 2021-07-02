@@ -29,7 +29,7 @@ func (wc *SubscriptionController) New(c *gin.Context) {
 		return
 	}
 
-	wm := wc.SubscriptionService.New(body)
+	wm := wc.SubscriptionService.New(c, body)
 	c.JSON(200, wm)
 }
 
@@ -41,7 +41,7 @@ func (wc *SubscriptionController) GetAll(c *gin.Context) {
 	fr := FilteredResponse(c)
 	wallet, _ := c.GetQuery("walletId")
 
-	wc.SubscriptionService.GetAll(body, wallet, fr)
+	wc.SubscriptionService.GetAll(c, body, wallet, fr)
 
 	c.JSON(200, fr)
 }

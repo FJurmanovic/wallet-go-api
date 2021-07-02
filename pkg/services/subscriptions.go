@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"math"
 	"time"
 	"wallet-api/pkg/models"
@@ -12,7 +13,9 @@ type SubscriptionService struct {
 	Db *pg.DB
 }
 
-func (as *SubscriptionService) New(body *models.NewSubscriptionBody) *models.Subscription {
+func (as *SubscriptionService) New(ctx context.Context, body *models.NewSubscriptionBody) *models.Subscription {
+	db := as.Db.WithContext(ctx)
+
 	tm := new(models.Subscription)
 
 	amount, _ := body.Amount.Float64()
@@ -33,7 +36,7 @@ func (as *SubscriptionService) New(body *models.NewSubscriptionBody) *models.Sub
 		tm.StartDate = time.Now()
 	}
 
-	tx, _ := as.Db.Begin()
+	tx, _ := db.Begin()
 	defer tx.Rollback()
 
 	tx.Model(tm).Insert()
@@ -44,10 +47,12 @@ func (as *SubscriptionService) New(body *models.NewSubscriptionBody) *models.Sub
 	return tm
 }
 
-func (as *SubscriptionService) GetAll(am *models.Auth, walletId string, filtered *models.FilteredResponse) {
+func (as *SubscriptionService) GetAll(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse) {
+	db := as.Db.WithContext(ctx)
+
 	wm := new([]models.Subscription)
 
-	tx, _ := as.Db.Begin()
+	tx, _ := db.Begin()
 	defer tx.Rollback()
 
 	query := tx.Model(wm).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)

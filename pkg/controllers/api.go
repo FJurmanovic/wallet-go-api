@@ -22,12 +22,14 @@ func NewApiController(as *services.ApiService, s *gin.RouterGroup) *ApiControlle
 }
 
 func (ac *ApiController) getFirst(c *gin.Context) {
-	apiModel := ac.ApiService.GetFirst()
+	apiModel := ac.ApiService.GetFirst(c)
 	c.JSON(200, apiModel)
 }
 
 func (ac *ApiController) postMigrate(c *gin.Context) {
-	mr, er := ac.ApiService.PostMigrate()
+	migrateModel := c.MustGet("migrate")
+	version := migrateModel.(middleware.SecretCodeModel).Version
+	mr, er := ac.ApiService.PostMigrate(c, version)
 
 	if er.Message != "" {
 		c.JSON(er.StatusCode, er)

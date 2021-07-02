@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"wallet-api/pkg/migrate"
 	"wallet-api/pkg/models"
 
@@ -11,22 +12,21 @@ type ApiService struct {
 	Db *pg.DB
 }
 
-func (as *ApiService) GetFirst() models.ApiModel {
+func (as *ApiService) GetFirst(ctx context.Context) models.ApiModel {
+	db := as.Db.WithContext(ctx)
+
 	apiModel := models.ApiModel{Api: "Works"}
-	as.Db.Model(&apiModel).First()
+	db.Model(&apiModel).First()
 	return apiModel
 }
 
-func (as *ApiService) PostMigrate() (*models.MessageResponse, *models.Exception) {
+func (as *ApiService) PostMigrate(ctx context.Context, version string) (*models.MessageResponse, *models.Exception) {
+	db := as.Db.WithContext(ctx)
+
 	mr := new(models.MessageResponse)
 	er := new(models.Exception)
 
-	err := migrate.Start(as.Db)
-	if err != nil {
-		er.ErrorCode = "400999"
-		er.StatusCode = 400
-		er.Message = err.Error()
-	}
+	migrate.Start(db, version)
 
 	return mr, er
 }

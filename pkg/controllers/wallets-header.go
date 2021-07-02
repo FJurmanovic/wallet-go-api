@@ -28,7 +28,7 @@ func (wc *WalletsHeaderController) Get(c *gin.Context) {
 	auth := c.MustGet("auth")
 	body.Id = auth.(*models.Auth).Id
 
-	wm := wc.WalletService.GetHeader(body, walletId)
+	wm := wc.WalletService.GetHeader(c, body, walletId)
 
 	c.JSON(200, wm)
 }

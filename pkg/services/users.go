@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"os"
 	"time"
 	"wallet-api/pkg/models"
@@ -17,11 +18,13 @@ type UsersService struct {
 	Db *pg.DB
 }
 
-func (us *UsersService) Create(registerBody *models.User) (*models.User, *models.Exception) {
+func (us *UsersService) Create(ctx context.Context, registerBody *models.User) (*models.User, *models.Exception) {
+	db := us.Db.WithContext(ctx)
+
 	check := new(models.User)
 	exceptionReturn := new(models.Exception)
 
-	tx, _ := us.Db.Begin()
+	tx, _ := db.Begin()
 	defer tx.Rollback()
 
 	tx.Model(check).Where("? = ?", pg.Ident("username"), registerBody.Username).WhereOr("? = ?", pg.Ident("email"), registerBody.Email).Select()
@@ -49,12 +52,14 @@ func (us *UsersService) Create(registerBody *models.User) (*models.User, *models
 	return registerBody, exceptionReturn
 }
 
-func (us *UsersService) Login(loginBody *models.Login) (*models.Token, *models.Exception) {
+func (us *UsersService) Login(ctx context.Context, loginBody *models.Login) (*models.Token, *models.Exception) {
+	db := us.Db.WithContext(ctx)
+
 	check := new(models.User)
 	exceptionReturn := new(models.Exception)
 	tokenPayload := new(models.Token)
 
-	us.Db.Model(check).Where("? = ?", pg.Ident("email"), loginBody.Email).Select()
+	db.Model(check).Where("? = ?", pg.Ident("email"), loginBody.Email).Select()
 	if check.Email == "" {
 		exceptionReturn.Message = "Email not found"
 		exceptionReturn.ErrorCode = "400103"
@@ -84,12 +89,14 @@ func (us *UsersService) Login(loginBody *models.Login) (*models.Token, *models.E
 	return tokenPayload, exceptionReturn
 }
 
-func (us *UsersService) Deactivate(auth *models.Auth) (*models.MessageResponse, *models.Exception) {
+func (us *UsersService) Deactivate(ctx context.Context, auth *models.Auth) (*models.MessageResponse, *models.Exception) {
+	db := us.Db.WithContext(ctx)
+
 	mm := new(models.MessageResponse)
 	me := new(models.Exception)
 	um := new(models.User)
 
-	tx, _ := us.Db.Begin()
+	tx, _ := db.Begin()
 	defer tx.Rollback()
 
 	err := tx.Model(um).Where("? = ?", pg.Ident("id"), auth.Id).Select()
