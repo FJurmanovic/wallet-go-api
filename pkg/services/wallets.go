@@ -83,6 +83,7 @@ func (as *WalletService) GetHeader(ctx context.Context, am *models.Auth, walletI
 		query.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
 	query.Select()
+	tx.Commit()
 
 	for _, trans := range *transactions {
 		addWhere(wallets, trans.WalletID, trans)
@@ -93,7 +94,7 @@ func (as *WalletService) GetHeader(ctx context.Context, am *models.Auth, walletI
 			// tzFirstOfMonthAfterNext := firstOfMonthAfterNext.In(trans.TransactionDate.Location())
 			// tzFirstOfNextMonth := firstOfNextMonth.In(trans.TransactionDate.Location())
 			// tzFirstOfMonth := firstOfMonth.In(trans.TransactionDate.Location())
-			if trans.TransactionDate.Before(firstOfMonth) && trans.TransactionDate.After(firstOfMonth) || trans.TransactionDate.Equal(firstOfMonth) {
+			if trans.TransactionDate.Before(firstOfNextMonth) && trans.TransactionDate.After(firstOfMonth) || trans.TransactionDate.Equal(firstOfMonth) {
 				if trans.TransactionType.Type == "expense" {
 					(*wallets)[i].CurrentBalance -= trans.Amount
 				} else {
@@ -127,7 +128,6 @@ func (as *WalletService) GetHeader(ctx context.Context, am *models.Auth, walletI
 	wm.Currency = "USD"
 	wm.WalletId = walletId
 
-	tx.Commit()
 
 	return wm
 }
