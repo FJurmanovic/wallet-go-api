@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"sync"
 	"time"
 	"wallet-api/pkg/models"
 	"wallet-api/pkg/utl/common"
@@ -50,7 +49,6 @@ func (as *WalletService) GetHeader(ctx context.Context, am *models.Auth, walletI
 
 	wm := new(models.WalletHeader)
 	wallets := new([]models.WalletTransactions)
-	var wg sync.WaitGroup
 	transactions := new([]models.Transaction)
 	subscriptions := new([]models.Subscription)
 
@@ -85,6 +83,30 @@ func (as *WalletService) GetHeader(ctx context.Context, am *models.Auth, walletI
 	query.Select()
 	tx.Commit()
 
+	for _, sub := range *subscriptions {
+		stopDate := firstOfMonthAfterNext
+		if sub.HasEnd && sub.EndDate.Before(firstOfMonthAfterNext) {
+			stopDate = sub.EndDate
+		}
+		startDate := sub.StartDate
+		for startDate.Before(stopDate) {
+			trans := sub.ToTrans()
+			trans.TransactionDate = startDate
+			if startDate.After(firstOfNextMonth) || startDate.Equal(firstOfNextMonth) {
+				*transactions = append(*transactions, *trans)
+			}
+			if sub.SubscriptionType.Type == "monthly" {
+				startDate = startDate.AddDate(0, sub.CustomRange, 0)
+			} else if sub.SubscriptionType.Type == "weekly" {
+				startDate = startDate.AddDate(0, 0, 7*sub.CustomRange)
+			} else if sub.SubscriptionType.Type == "daily" {
+				startDate = startDate.AddDate(0, 0, sub.CustomRange)
+			} else {
+				startDate = startDate.AddDate(sub.CustomRange, 0, 0)
+			}
+		}
+	}
+
 	for _, trans := range *transactions {
 		addWhere(wallets, trans.WalletID, trans)
 	}
@@ -116,8 +138,6 @@ func (as *WalletService) GetHeader(ctx context.Context, am *models.Auth, walletI
 
 		}
 	}
-
-	wg.Wait()
 
 	for _, wallet := range *wallets {
 		wm.LastMonth += wallet.LastMonth
