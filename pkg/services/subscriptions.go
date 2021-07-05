@@ -77,11 +77,11 @@ func (as *SubscriptionService) SubToTrans(subModel *models.Subscription, tx *pg.
 	currentLocation := now.Location()
 
 	firstOfNextMonth := time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, currentLocation)
-	tzFirstOfNextMonth := firstOfNextMonth.In(subModel.StartDate.Location())
+	//tzFirstOfNextMonth := firstOfNextMonth.In(subModel.StartDate.Location())
 
 	startDate := subModel.StartDate
-	stopDate := tzFirstOfNextMonth
-	if subModel.HasEnd && subModel.EndDate.Before(tzFirstOfNextMonth) {
+	stopDate := firstOfNextMonth
+	if subModel.HasEnd && subModel.EndDate.Before(firstOfNextMonth) {
 		stopDate = subModel.EndDate
 	}
 
