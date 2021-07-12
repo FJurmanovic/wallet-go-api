@@ -81,7 +81,7 @@ func (us *UsersService) Login(ctx context.Context, loginBody *models.Login) (*mo
 		return tokenPayload, exceptionReturn
 	}
 
-	token, err := CreateToken(check)
+	token, err := CreateToken(check, loginBody.RememberMe)
 	common.CheckError(err)
 
 	tokenPayload.Token = token
@@ -124,11 +124,15 @@ func (us *UsersService) Deactivate(ctx context.Context, auth *models.Auth) (*mod
 	return mm, me
 }
 
-func CreateToken(user *models.User) (string, error) {
+func CreateToken(user *models.User, rememberMe bool) (string, error) {
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true
 	atClaims["id"] = user.Id
-	atClaims["exp"] = time.Now().Add(time.Hour * 2).Unix()
+	if rememberMe {
+		atClaims["exp"] = time.Now().Add(time.Hour * 48).Unix()
+	} else {
+		atClaims["exp"] = time.Now().Add(time.Hour * 2).Unix()
+	}
 
 	secret := os.Getenv("ACCESS_SECRET")
 	if secret == "" {

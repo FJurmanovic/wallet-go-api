@@ -5,8 +5,9 @@ type Token struct {
 }
 
 type Login struct {
-	Email    string `form:"email"`
-	Password string `form:"password"`
+	Email    string `json:"email" form:"email"`
+	Password string `json:"password" form:"password"`
+	RememberMe bool `json:"rememberMe" form:"rememberMe"`
 }
 
 type Auth struct {
