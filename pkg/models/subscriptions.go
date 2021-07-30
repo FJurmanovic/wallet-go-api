@@ -23,6 +23,16 @@ type Subscription struct {
 	Amount              float32           `json:"amount", pg:"amount,default:0"`
 }
 
+type SubscriptionEdit struct {
+	tableName   struct{}    `pg:"subscriptions,alias:subscriptions"`
+	Id          string      `json:"id" form:"id"`
+	Description string      `json:"description" form:"description"`
+	EndDate     time.Time   `json:"endDate" form:"endDate" `
+	HasEnd      bool        `json:"hasEnd" form:"hasEnd"`
+	WalletID    string      `json:"walletId" form:"walletId"`
+	Amount      json.Number `json:"amount" form:"amount"`
+}
+
 type NewSubscriptionBody struct {
 	WalletID           string      `json:"walletId" form:"walletId"`
 	TransactionTypeID  string      `json:"transactionTypeId" form:"transactionTypeId"`
@@ -60,7 +70,7 @@ func (cm *Subscription) HasNew() bool {
 			}
 			return false
 		case "weekly":
-			lastDate := time.Now().AddDate(0, 0, -(7*cm.CustomRange))
+			lastDate := time.Now().AddDate(0, 0, -(7 * cm.CustomRange))
 			if cm.LastTransactionDate.Before(lastDate) {
 				return true
 			}

@@ -5,6 +5,7 @@ import (
 	"math"
 	"time"
 	"wallet-api/pkg/models"
+	"wallet-api/pkg/utl/common"
 
 	"github.com/go-pg/pg/v10"
 )
@@ -47,6 +48,27 @@ func (as *SubscriptionService) New(ctx context.Context, body *models.NewSubscrip
 	return tm
 }
 
+func (as *SubscriptionService) Get(ctx context.Context, am *models.Auth, id string, params *models.Params) *models.Subscription {
+	db := as.Db.WithContext(ctx)
+
+	wm := new(models.Subscription)
+	wm.Id = id
+
+	tx, _ := db.Begin()
+	defer tx.Rollback()
+
+	qry := tx.Model(wm)
+	common.GenerateEmbed(qry, params.Embed).WherePK().Select()
+
+	if (*wm).HasNew() {
+		as.SubToTrans(wm, tx)
+	}
+
+	tx.Commit()
+
+	return wm
+}
+
 func (as *SubscriptionService) GetAll(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse) {
 	db := as.Db.WithContext(ctx)
 
@@ -67,6 +89,29 @@ func (as *SubscriptionService) GetAll(ctx context.Context, am *models.Auth, wall
 	}
 	FilteredResponse(query, wm, filtered)
 	tx.Commit()
+}
+
+func (as *SubscriptionService) Edit(ctx context.Context, body *models.SubscriptionEdit, id string) *models.Subscription {
+	db := as.Db.WithContext(ctx)
+
+	amount, _ := body.Amount.Float64()
+
+	tm := new(models.Subscription)
+	tm.Id = id
+	tm.EndDate = body.EndDate
+	tm.HasEnd = body.HasEnd
+	tm.Description = body.Description
+	tm.WalletID = body.WalletID
+	tm.Amount = float32(math.Round(amount*100) / 100)
+
+	tx, _ := db.Begin()
+	defer tx.Rollback()
+
+	tx.Model(tm).WherePK().UpdateNotZero()
+
+	tx.Commit()
+
+	return tm
 }
 
 func (as *SubscriptionService) SubToTrans(subModel *models.Subscription, tx *pg.Tx) {
