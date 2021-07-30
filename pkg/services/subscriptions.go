@@ -114,6 +114,24 @@ func (as *SubscriptionService) Edit(ctx context.Context, body *models.Subscripti
 	return tm
 }
 
+func (as *SubscriptionService) End(ctx context.Context, id string) *models.Subscription {
+	db := as.Db.WithContext(ctx)
+
+	tm := new(models.Subscription)
+	tm.Id = id
+	tm.EndDate = time.Now()
+	tm.HasEnd = true
+
+	tx, _ := db.Begin()
+	defer tx.Rollback()
+
+	tx.Model(tm).WherePK().UpdateNotZero()
+
+	tx.Commit()
+
+	return tm
+}
+
 func (as *SubscriptionService) SubToTrans(subModel *models.Subscription, tx *pg.Tx) {
 
 	now := time.Now()

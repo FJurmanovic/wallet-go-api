@@ -16,6 +16,7 @@ func NewSubscriptionController(as *services.SubscriptionService, s *gin.RouterGr
 	wc := new(SubscriptionController)
 	wc.SubscriptionService = as
 
+	s.PUT("/end/:id", wc.End)
 	s.POST("", wc.New)
 	s.PUT("/:id", wc.Edit)
 	s.GET("", wc.GetAll)
@@ -56,11 +57,24 @@ func (wc *SubscriptionController) Get(c *gin.Context) {
 	body.Id = auth.(*models.Auth).Id
 
 	id := c.Param("id")
-	
+
 	embed, _ := c.GetQuery("embed")
 	params.Embed = embed
 
 	fr := wc.SubscriptionService.Get(c, body, id, params)
+
+	c.JSON(200, fr)
+}
+
+func (wc *SubscriptionController) End(c *gin.Context) {
+	body := new(models.Auth)
+
+	auth := c.MustGet("auth")
+	body.Id = auth.(*models.Auth).Id
+
+	id := c.Param("id")
+
+	fr := wc.SubscriptionService.End(c, id)
 
 	c.JSON(200, fr)
 }
