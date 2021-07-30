@@ -5,6 +5,7 @@ import (
 	"math"
 	"time"
 	"wallet-api/pkg/models"
+	"wallet-api/pkg/utl/common"
 
 	"github.com/go-pg/pg/v10"
 )
@@ -19,6 +20,9 @@ func (as *TransactionService) New(ctx context.Context, body *models.NewTransacti
 
 	tm := new(models.Transaction)
 
+	tx, _ := db.Begin()
+	defer tx.Rollback()
+
 	amount, _ := body.Amount.Float64()
 
 	tm.Init()
@@ -32,7 +36,8 @@ func (as *TransactionService) New(ctx context.Context, body *models.NewTransacti
 		tm.TransactionDate = time.Now()
 	}
 
-	db.Model(tm).Insert()
+	tx.Model(tm).Insert()
+	tx.Commit()
 
 	return tm
 }
@@ -66,4 +71,44 @@ func (as *TransactionService) GetAll(ctx context.Context, am *models.Auth, walle
 	FilteredResponse(query, wm, filtered)
 
 	tx.Commit()
+}
+
+func (as *TransactionService) Edit(ctx context.Context, body *models.TransactionEdit, id string) *models.Transaction {
+	db := as.Db.WithContext(ctx)
+
+	amount, _ := body.Amount.Float64()
+
+	tm := new(models.Transaction)
+	tm.Id = id
+	tm.Description = body.Description
+	tm.WalletID = body.WalletID
+	tm.TransactionTypeID = body.TransactionTypeID
+	tm.TransactionDate = body.TransactionDate
+	tm.Amount = float32(math.Round(amount*100) / 100)
+
+	tx, _ := db.Begin()
+	defer tx.Rollback()
+
+	tx.Model(tm).WherePK().UpdateNotZero()
+
+	tx.Commit()
+
+	return tm
+}
+
+func (as *TransactionService) Get(ctx context.Context, am *models.Auth, id string, params *models.Params) *models.Transaction {
+	db := as.Db.WithContext(ctx)
+
+	wm := new(models.Transaction)
+	wm.Id = id
+
+	tx, _ := db.Begin()
+	defer tx.Rollback()
+
+	qry := tx.Model(wm)
+	common.GenerateEmbed(qry, params.Embed).WherePK().Select()
+
+	tx.Commit()
+
+	return wm
 }

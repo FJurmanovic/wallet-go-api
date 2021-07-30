@@ -19,8 +19,8 @@ func NewSubscriptionController(as *services.SubscriptionService, s *gin.RouterGr
 	s.PUT("/end/:id", wc.End)
 	s.POST("", wc.New)
 	s.PUT("/:id", wc.Edit)
-	s.GET("", wc.GetAll)
 	s.GET("/:id", wc.Get)
+	s.GET("", wc.GetAll)
 
 	return wc
 }

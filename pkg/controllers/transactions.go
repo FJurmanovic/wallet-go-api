@@ -18,6 +18,8 @@ func NewTransactionController(as *services.TransactionService, s *gin.RouterGrou
 
 	s.POST("", wc.New)
 	s.GET("", wc.GetAll)
+	s.PUT("/:id", wc.Edit)
+	s.GET("/:id", wc.Get)
 
 	return wc
 }
@@ -42,6 +44,36 @@ func (wc *TransactionController) GetAll(c *gin.Context) {
 	wallet, _ := c.GetQuery("walletId")
 
 	wc.TransactionService.GetAll(c, body, wallet, fr)
+
+	c.JSON(200, fr)
+}
+
+func (wc *TransactionController) Edit(c *gin.Context) {
+	body := new(models.TransactionEdit)
+	if err := c.ShouldBind(body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	id := c.Param("id")
+
+	wm := wc.TransactionService.Edit(c, body, id)
+	c.JSON(200, wm)
+}
+
+func (wc *TransactionController) Get(c *gin.Context) {
+	body := new(models.Auth)
+	params := new(models.Params)
+
+	auth := c.MustGet("auth")
+	body.Id = auth.(*models.Auth).Id
+
+	id := c.Param("id")
+
+	embed, _ := c.GetQuery("embed")
+	params.Embed = embed
+
+	fr := wc.TransactionService.Get(c, body, id, params)
 
 	c.JSON(200, fr)
 }
