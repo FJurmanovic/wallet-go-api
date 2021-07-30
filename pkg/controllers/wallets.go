@@ -18,6 +18,8 @@ func NewWalletsController(as *services.WalletService, s *gin.RouterGroup) *Walle
 
 	s.POST("", wc.New)
 	s.GET("", wc.GetAll)
+	s.PUT("/:id", wc.Edit)
+	s.GET("/:id", wc.Get)
 
 	return wc
 }
@@ -37,18 +39,6 @@ func (wc *WalletsController) New(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
-func (wc *WalletsController) Get(c *gin.Context) {
-	body := new(models.Auth)
-
-	embed, _ := c.GetQuery("embed")
-	auth := c.MustGet("auth")
-	body.Id = auth.(*models.Auth).Id
-
-	wm := wc.WalletService.Get(c, body, embed)
-
-	c.JSON(200, wm)
-}
-
 func (wc *WalletsController) GetAll(c *gin.Context) {
 	body := new(models.Auth)
 	auth := c.MustGet("auth")
@@ -59,5 +49,30 @@ func (wc *WalletsController) GetAll(c *gin.Context) {
 	wc.WalletService.GetAll(c, body, fr)
 
 	c.JSON(200, fr)
+}
 
+func (wc *WalletsController) Edit(c *gin.Context) {
+	body := new(models.WalletEdit)
+	if err := c.ShouldBind(body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	id := c.Param("id")
+
+	wm := wc.WalletService.Edit(c, body, id)
+	c.JSON(200, wm)
+}
+
+func (wc *WalletsController) Get(c *gin.Context) {
+	params := new(models.Params)
+
+	id := c.Param("id")
+
+	embed, _ := c.GetQuery("embed")
+	params.Embed = embed
+
+	fr := wc.WalletService.Get(c, id, params)
+
+	c.JSON(200, fr)
 }

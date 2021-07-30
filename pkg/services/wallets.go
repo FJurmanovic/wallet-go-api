@@ -25,13 +25,36 @@ func (as *WalletService) New(ctx context.Context, am *models.NewWalletBody) *mod
 	return walletModel
 }
 
-func (as *WalletService) Get(ctx context.Context, am *models.Auth, embed string) *models.Wallet {
+func (as *WalletService) Edit(ctx context.Context, body *models.WalletEdit, id string) *models.Wallet {
+	db := as.Db.WithContext(ctx)
+
+	tm := new(models.Wallet)
+	tm.Id = id
+	tm.Name = body.Name
+
+	tx, _ := db.Begin()
+	defer tx.Rollback()
+
+	tx.Model(tm).WherePK().UpdateNotZero()
+
+	tx.Commit()
+
+	return tm
+}
+
+func (as *WalletService) Get(ctx context.Context, id string, params *models.Params) *models.Wallet {
 	db := as.Db.WithContext(ctx)
 
 	wm := new(models.Wallet)
+	wm.Id = id
 
-	query := db.Model(wm).Where("? = ?", pg.Ident("user_id"), am.Id)
-	common.GenerateEmbed(query, embed).Select()
+	tx, _ := db.Begin()
+	defer tx.Rollback()
+
+	qry := tx.Model(wm)
+	common.GenerateEmbed(qry, params.Embed).WherePK().Select()
+
+	tx.Commit()
 
 	return wm
 }
@@ -147,7 +170,6 @@ func (as *WalletService) GetHeader(ctx context.Context, am *models.Auth, walletI
 
 	wm.Currency = "USD"
 	wm.WalletId = walletId
-
 
 	return wm
 }
