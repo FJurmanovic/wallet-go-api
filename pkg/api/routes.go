@@ -21,6 +21,11 @@ func Routes(s *gin.Engine, db *pg.DB) {
 	transactionType := ver.Group("transaction-type", middleware.Auth)
 	subscription := ver.Group("subscription", middleware.Auth)
 	subscriptionType := ver.Group("subscription-type", middleware.Auth)
+	
+	s.NoRoute(func(c *gin.Context) {
+		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
+	})
+	
 
 	apiService := services.ApiService{Db: db}
 	usersService := services.UsersService{Db: db}
