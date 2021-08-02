@@ -45,6 +45,10 @@ type NewSubscriptionBody struct {
 	Amount             json.Number `json:"amount" form:"amount"`
 }
 
+type SubscriptionEnd struct {
+	Id string `json:"id" form:"id"`
+}
+
 func (cm *Subscription) ToTrans() *Transaction {
 	trans := new(Transaction)
 	trans.Init()
