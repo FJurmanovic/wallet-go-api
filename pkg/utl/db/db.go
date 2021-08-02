@@ -8,7 +8,7 @@ import (
 	"github.com/go-pg/pg/v10"
 )
 
-func CreateConnection(dbUrl string, ctx context.Context) *pg.DB {
+func CreateConnection(ctx context.Context, dbUrl string) *pg.DB {
 	opt, err := pg.ParseURL(dbUrl)
 	common.CheckError(err)
 	conn := pg.Connect(opt)

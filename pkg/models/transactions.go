@@ -26,3 +26,12 @@ type NewTransactionBody struct {
 	Description       string      `json:"description" form:"description"`
 	Amount            json.Number `json:"amount" form:"amount"`
 }
+
+type TransactionEdit struct {
+	Id                string      `json:"id" form:"id"`
+	WalletID          string      `json:"walletId" form:"walletId"`
+	TransactionTypeID string      `json:"transactionTypeId" form:"transactionTypeId"`
+	TransactionDate   time.Time   `json:"transactionDate" form:"transactionDate"`
+	Description       string      `json:"description" form:"description"`
+	Amount            json.Number `json:"amount" form:"amount"`
+}

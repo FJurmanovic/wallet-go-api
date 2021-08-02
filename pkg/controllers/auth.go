@@ -13,6 +13,7 @@ type AuthController struct {
 	UsersService *services.UsersService
 }
 
+// Initializes AuthController.
 func NewAuthController(rs *services.UsersService, s *gin.RouterGroup) *AuthController {
 	rc := new(AuthController)
 	rc.UsersService = rs
@@ -25,6 +26,7 @@ func NewAuthController(rs *services.UsersService, s *gin.RouterGroup) *AuthContr
 	return rc
 }
 
+// ROUTE (POST /auth/login).
 func (rc *AuthController) PostLogin(c *gin.Context) {
 	body := new(models.Login)
 	if err := c.ShouldBind(&body); err != nil {
@@ -40,6 +42,7 @@ func (rc *AuthController) PostLogin(c *gin.Context) {
 	}
 }
 
+// ROUTE (POST /auth/register).
 func (rc *AuthController) PostRegister(c *gin.Context) {
 	body := new(models.User)
 	body.Init()
@@ -56,6 +59,8 @@ func (rc *AuthController) PostRegister(c *gin.Context) {
 		c.JSON(200, returnedUser.Payload())
 	}
 }
+
+// ROUTE (DELETE /auth/deactivate).
 func (rc *AuthController) Delete(c *gin.Context) {
 	auth := new(models.Auth)
 	authGet := c.MustGet("auth")
@@ -70,6 +75,7 @@ func (rc *AuthController) Delete(c *gin.Context) {
 	}
 }
 
+// ROUTE (GET /auth/check-token).
 func (rc *AuthController) CheckToken(c *gin.Context) {
 	token, _ := c.GetQuery("token")
 	re := new(models.CheckToken)

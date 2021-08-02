@@ -12,6 +12,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Auth Middleware.
+//
+// Checks if token from header is valid and extracts the id.
 func Auth(c *gin.Context) {
 	exceptionReturn := new(models.Exception)
 	tokenString := ExtractToken(c)
@@ -34,6 +37,7 @@ func Auth(c *gin.Context) {
 	c.Next()
 }
 
+// Extracts token from header
 func ExtractToken(c *gin.Context) string {
 	bearerToken := c.GetHeader("Authorization")
 	tokenArr := strings.Split(bearerToken, " ")
@@ -46,6 +50,7 @@ func ExtractToken(c *gin.Context) string {
 	return ""
 }
 
+// Checks if token is valid
 func CheckToken(tokenString string) (*jwt.Token, error) {
 	secret := os.Getenv("ACCESS_SECRET")
 	if secret == "" {

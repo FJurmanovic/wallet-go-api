@@ -12,6 +12,7 @@ type SubscriptionTypeController struct {
 	SubscriptionTypeService *services.SubscriptionTypeService
 }
 
+// Initializes SubscriptionTypeController.
 func NewSubscriptionTypeController(as *services.SubscriptionTypeService, s *gin.RouterGroup) *SubscriptionTypeController {
 	wc := new(SubscriptionTypeController)
 	wc.SubscriptionTypeService = as
@@ -22,6 +23,7 @@ func NewSubscriptionTypeController(as *services.SubscriptionTypeService, s *gin.
 	return wc
 }
 
+// ROUTE (POST /subscription-types)
 func (wc *SubscriptionTypeController) New(c *gin.Context) {
 	body := new(models.NewSubscriptionTypeBody)
 	if err := c.ShouldBind(body); err != nil {
@@ -33,6 +35,7 @@ func (wc *SubscriptionTypeController) New(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
+// ROUTE (GET /subscription-types)
 func (wc *SubscriptionTypeController) GetAll(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 

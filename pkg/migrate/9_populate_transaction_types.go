@@ -1,10 +1,14 @@
 package migrate
 
 import (
-	"github.com/go-pg/pg/v10"
+	"fmt"
+	"log"
 	"wallet-api/pkg/models"
+
+	"github.com/go-pg/pg/v10"
 )
 
+// Populates transactionTypes table if it does not exist.
 func PopulateTransactionTypes(db pg.DB) error {
 	gain := new(models.TransactionType)
 	expense := new(models.TransactionType)
@@ -18,8 +22,20 @@ func PopulateTransactionTypes(db pg.DB) error {
 	expense.Type = "expense"
 
 	_, err := db.Model(gain).Where("? = ?", pg.Ident("type"), gain.Type).SelectOrInsert()
+	if err != nil {
+		log.Printf("Error inserting row into \"transactionTypes\" table: %s", err)
+		return err
+	} else {
+		fmt.Println("Row inserted successfully into \"transactionTypes\" table.")
+	}
 
 	_, err = db.Model(expense).Where("? = ?", pg.Ident("type"), expense.Type).SelectOrInsert()
+	if err != nil {
+		log.Printf("Error inserting row into \"transactionTypes\" table: %s", err)
+		return err
+	} else {
+		fmt.Println("Row inserted successfully into \"transactionTypes\" table.")
+	}
 
 	return err
 }

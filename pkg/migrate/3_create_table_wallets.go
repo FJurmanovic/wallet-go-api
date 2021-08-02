@@ -2,13 +2,15 @@ package migrate
 
 import (
 	"fmt"
-	"github.com/go-pg/pg/v10"
 	"log"
 	"wallet-api/pkg/models"
+
+	"github.com/go-pg/pg/v10"
 
 	"github.com/go-pg/pg/v10/orm"
 )
 
+// Creates wallets table if it does not exist.
 func CreateTableWallets(db pg.DB) error {
 	models := []interface{}{
 		(*models.Wallet)(nil),
@@ -20,10 +22,10 @@ func CreateTableWallets(db pg.DB) error {
 			FKConstraints: true,
 		})
 		if err != nil {
-			log.Printf("Error Creating Table: %s", err)
+			log.Printf("Error creating table \"wallets\": %s", err)
 			return err
 		} else {
-			fmt.Println("Table created successfully")
+			fmt.Println("Table \"wallets\" created successfully")
 		}
 	}
 	return nil

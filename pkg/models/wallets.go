@@ -28,3 +28,8 @@ type WalletTransactions struct {
 	LastMonth      float32
 	NextMonth      float32
 }
+
+type WalletEdit struct {
+	Id   string `json:"id" form:"id"`
+	Name string `json:"name" form:"name"`
+}

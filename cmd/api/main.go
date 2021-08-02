@@ -20,7 +20,7 @@ func main() {
 	r := gin.New()
 	r.Use(middleware.CORSMiddleware())
 
-	conn := db.CreateConnection(dbUrl, ctx)
+	conn := db.CreateConnection(ctx, dbUrl)
 	api.Init(r, conn)
 
 	server.Start(r)

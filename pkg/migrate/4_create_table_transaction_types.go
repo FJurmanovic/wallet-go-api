@@ -2,13 +2,15 @@ package migrate
 
 import (
 	"fmt"
-	"github.com/go-pg/pg/v10"
 	"log"
 	"wallet-api/pkg/models"
+
+	"github.com/go-pg/pg/v10"
 
 	"github.com/go-pg/pg/v10/orm"
 )
 
+// Creates transactionTypes table if it does not exist.
 func CreateTableTransactionTypes(db pg.DB) error {
 	models := []interface{}{
 		(*models.TransactionType)(nil),
@@ -20,10 +22,10 @@ func CreateTableTransactionTypes(db pg.DB) error {
 			FKConstraints: true,
 		})
 		if err != nil {
-			log.Printf("Error Creating Table: %s", err)
+			log.Printf("Error creating table \"api\": %s", err)
 			return err
 		} else {
-			fmt.Println("Table created successfully")
+			fmt.Println("Table \"api\" created successfully")
 		}
 	}
 	return nil
