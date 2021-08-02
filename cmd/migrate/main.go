@@ -15,6 +15,6 @@ func main() {
 	dbUrl := os.Getenv("DATABASE_URL")
 	ctx := context.Background()
 
-	conn := db.CreateConnection(dbUrl, ctx)
+	conn := db.CreateConnection(ctx, dbUrl)
 	migrate.Start(conn, "")
 }
