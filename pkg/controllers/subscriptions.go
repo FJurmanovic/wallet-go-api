@@ -12,6 +12,7 @@ type SubscriptionController struct {
 	SubscriptionService *services.SubscriptionService
 }
 
+// Initializes SubscriptionController.
 func NewSubscriptionController(as *services.SubscriptionService, s *gin.RouterGroup) *SubscriptionController {
 	wc := new(SubscriptionController)
 	wc.SubscriptionService = as
@@ -21,14 +22,15 @@ func NewSubscriptionController(as *services.SubscriptionService, s *gin.RouterGr
 	s.GET("/:id", wc.Get)
 	s.GET("", wc.GetAll)
 
-	se := s.Group("/end") 
+	se := s.Group("/end")
 	{
-		se.POST("", wc.End)
+		se.PUT("/:id", wc.End)
 	}
 
 	return wc
 }
 
+// ROUTE (POST /subscription)
 func (wc *SubscriptionController) New(c *gin.Context) {
 	body := new(models.NewSubscriptionBody)
 	if err := c.ShouldBind(body); err != nil {
@@ -40,6 +42,7 @@ func (wc *SubscriptionController) New(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
+// ROUTE (PUT /subscription/:id)
 func (wc *SubscriptionController) Edit(c *gin.Context) {
 	body := new(models.SubscriptionEdit)
 	if err := c.ShouldBind(body); err != nil {
@@ -53,6 +56,7 @@ func (wc *SubscriptionController) Edit(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
+// ROUTE (GET /subscription/:id)
 func (wc *SubscriptionController) Get(c *gin.Context) {
 	body := new(models.Auth)
 	params := new(models.Params)
@@ -70,6 +74,7 @@ func (wc *SubscriptionController) Get(c *gin.Context) {
 	c.JSON(200, fr)
 }
 
+// ROUTE (PUT /subscription/end/:id)
 func (wc *SubscriptionController) End(c *gin.Context) {
 	body := new(models.Auth)
 
@@ -82,13 +87,14 @@ func (wc *SubscriptionController) End(c *gin.Context) {
 		return
 	}
 
-	id := end.Id
+	id := c.Param("id")
 
 	fr := wc.SubscriptionService.End(c, id)
 
 	c.JSON(200, fr)
 }
 
+// ROUTE (GET /subscription)
 func (wc *SubscriptionController) GetAll(c *gin.Context) {
 	body := new(models.Auth)
 	auth := c.MustGet("auth")

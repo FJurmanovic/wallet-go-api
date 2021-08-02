@@ -10,6 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// Gets query parameters and populates FilteredResponse model.
 func FilteredResponse(c *gin.Context) *models.FilteredResponse {
 	filtered := new(models.FilteredResponse)
 	page, _ := c.GetQuery("page")

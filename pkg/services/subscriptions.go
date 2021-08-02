@@ -14,6 +14,7 @@ type SubscriptionService struct {
 	Db *pg.DB
 }
 
+// Inserts new row to subscription table.
 func (as *SubscriptionService) New(ctx context.Context, body *models.NewSubscriptionBody) *models.Subscription {
 	db := as.Db.WithContext(ctx)
 
@@ -48,6 +49,7 @@ func (as *SubscriptionService) New(ctx context.Context, body *models.NewSubscrip
 	return tm
 }
 
+// Gets row from subscription table by id.
 func (as *SubscriptionService) Get(ctx context.Context, am *models.Auth, id string, params *models.Params) *models.Subscription {
 	db := as.Db.WithContext(ctx)
 
@@ -69,6 +71,7 @@ func (as *SubscriptionService) Get(ctx context.Context, am *models.Auth, id stri
 	return wm
 }
 
+// Gets filtered rows from subscription table.
 func (as *SubscriptionService) GetAll(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse) {
 	db := as.Db.WithContext(ctx)
 
@@ -91,6 +94,7 @@ func (as *SubscriptionService) GetAll(ctx context.Context, am *models.Auth, wall
 	tx.Commit()
 }
 
+// Updates row from subscription table by id.
 func (as *SubscriptionService) Edit(ctx context.Context, body *models.SubscriptionEdit, id string) *models.Subscription {
 	db := as.Db.WithContext(ctx)
 
@@ -114,6 +118,9 @@ func (as *SubscriptionService) Edit(ctx context.Context, body *models.Subscripti
 	return tm
 }
 
+// Updates row in subscription table by id.
+//
+// Ends subscription with current date.
 func (as *SubscriptionService) End(ctx context.Context, id string) *models.Subscription {
 	db := as.Db.WithContext(ctx)
 
@@ -132,6 +139,7 @@ func (as *SubscriptionService) End(ctx context.Context, id string) *models.Subsc
 	return tm
 }
 
+// Generates and Inserts new Transaction rows from the subscription model.
 func (as *SubscriptionService) SubToTrans(subModel *models.Subscription, tx *pg.Tx) {
 
 	now := time.Now()

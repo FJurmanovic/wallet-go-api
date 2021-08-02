@@ -12,6 +12,7 @@ type TransactionController struct {
 	TransactionService *services.TransactionService
 }
 
+// Initializes TransactionController.
 func NewTransactionController(as *services.TransactionService, s *gin.RouterGroup) *TransactionController {
 	wc := new(TransactionController)
 	wc.TransactionService = as
@@ -24,6 +25,7 @@ func NewTransactionController(as *services.TransactionService, s *gin.RouterGrou
 	return wc
 }
 
+// ROUTE (POST /transactions)
 func (wc *TransactionController) New(c *gin.Context) {
 	body := new(models.NewTransactionBody)
 	if err := c.ShouldBind(body); err != nil {
@@ -35,6 +37,7 @@ func (wc *TransactionController) New(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
+// ROUTE (GET /transactions)
 func (wc *TransactionController) GetAll(c *gin.Context) {
 	body := new(models.Auth)
 	auth := c.MustGet("auth")
@@ -48,6 +51,7 @@ func (wc *TransactionController) GetAll(c *gin.Context) {
 	c.JSON(200, fr)
 }
 
+// ROUTE (PUT /transactions/:id)
 func (wc *TransactionController) Edit(c *gin.Context) {
 	body := new(models.TransactionEdit)
 	if err := c.ShouldBind(body); err != nil {
@@ -61,6 +65,7 @@ func (wc *TransactionController) Edit(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
+// ROUTE (GET /transactions/:id)
 func (wc *TransactionController) Get(c *gin.Context) {
 	body := new(models.Auth)
 	params := new(models.Params)

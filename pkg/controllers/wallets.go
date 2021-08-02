@@ -12,6 +12,7 @@ type WalletsController struct {
 	WalletService *services.WalletService
 }
 
+// Initializes WalletsController.
 func NewWalletsController(as *services.WalletService, s *gin.RouterGroup) *WalletsController {
 	wc := new(WalletsController)
 	wc.WalletService = as
@@ -24,6 +25,7 @@ func NewWalletsController(as *services.WalletService, s *gin.RouterGroup) *Walle
 	return wc
 }
 
+// ROUTE (POST /wallet)
 func (wc *WalletsController) New(c *gin.Context) {
 	body := new(models.NewWalletBody)
 
@@ -39,6 +41,7 @@ func (wc *WalletsController) New(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
+// ROUTE (GET /wallet)
 func (wc *WalletsController) GetAll(c *gin.Context) {
 	body := new(models.Auth)
 	auth := c.MustGet("auth")
@@ -51,6 +54,7 @@ func (wc *WalletsController) GetAll(c *gin.Context) {
 	c.JSON(200, fr)
 }
 
+// ROUTE (PUT /wallet/:id)
 func (wc *WalletsController) Edit(c *gin.Context) {
 	body := new(models.WalletEdit)
 	if err := c.ShouldBind(body); err != nil {
@@ -64,6 +68,7 @@ func (wc *WalletsController) Edit(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
+// ROUTE (GET /wallet/:id)
 func (wc *WalletsController) Get(c *gin.Context) {
 	params := new(models.Params)
 

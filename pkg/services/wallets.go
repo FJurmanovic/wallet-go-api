@@ -14,6 +14,7 @@ type WalletService struct {
 	Ss *SubscriptionService
 }
 
+// Inserts row to wallets table.
 func (as *WalletService) New(ctx context.Context, am *models.NewWalletBody) *models.Wallet {
 	db := as.Db.WithContext(ctx)
 
@@ -25,6 +26,7 @@ func (as *WalletService) New(ctx context.Context, am *models.NewWalletBody) *mod
 	return walletModel
 }
 
+// Updates row in wallets table by id.
 func (as *WalletService) Edit(ctx context.Context, body *models.WalletEdit, id string) *models.Wallet {
 	db := as.Db.WithContext(ctx)
 
@@ -42,6 +44,7 @@ func (as *WalletService) Edit(ctx context.Context, body *models.WalletEdit, id s
 	return tm
 }
 
+// Gets row in wallets table by id.
 func (as *WalletService) Get(ctx context.Context, id string, params *models.Params) *models.Wallet {
 	db := as.Db.WithContext(ctx)
 
@@ -59,6 +62,7 @@ func (as *WalletService) Get(ctx context.Context, id string, params *models.Para
 	return wm
 }
 
+// Gets filtered rows from wallets table.
 func (as *WalletService) GetAll(ctx context.Context, am *models.Auth, filtered *models.FilteredResponse) {
 	db := as.Db.WithContext(ctx)
 	wm := new([]models.Wallet)
@@ -67,6 +71,9 @@ func (as *WalletService) GetAll(ctx context.Context, am *models.Auth, filtered *
 	FilteredResponse(query, wm, filtered)
 }
 
+// Gets row from wallets table.
+//
+// Calculates previous month, current and next month totals.
 func (as *WalletService) GetHeader(ctx context.Context, am *models.Auth, walletId string) *models.WalletHeader {
 	db := as.Db.WithContext(ctx)
 
@@ -174,6 +181,9 @@ func (as *WalletService) GetHeader(ctx context.Context, am *models.Auth, walletI
 	return wm
 }
 
+// Appends Transaction to the belonging walletId
+//
+// If missing, it creates the item list.
 func addWhere(s *[]models.WalletTransactions, walletId string, e models.Transaction) {
 	var exists bool
 	for a := range *s {

@@ -4,6 +4,7 @@ import (
 	"github.com/go-pg/pg/v10"
 )
 
+// Starts database migration.
 func Start(conn *pg.DB, version string) {
 	migration001 := Migration{
 		Version: "001",
@@ -43,7 +44,6 @@ func Start(conn *pg.DB, version string) {
 }
 
 type Migration struct {
-	Version string
+	Version    string
 	Migrations []interface{}
 }
-

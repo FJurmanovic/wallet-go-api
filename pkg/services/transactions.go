@@ -15,6 +15,7 @@ type TransactionService struct {
 	Ss *SubscriptionService
 }
 
+// Inserts new row to transaction table.
 func (as *TransactionService) New(ctx context.Context, body *models.NewTransactionBody) *models.Transaction {
 	db := as.Db.WithContext(ctx)
 
@@ -42,6 +43,7 @@ func (as *TransactionService) New(ctx context.Context, body *models.NewTransacti
 	return tm
 }
 
+// Gets filtered rows from transaction table.
 func (as *TransactionService) GetAll(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse) {
 	db := as.Db.WithContext(ctx)
 
@@ -73,6 +75,7 @@ func (as *TransactionService) GetAll(ctx context.Context, am *models.Auth, walle
 	tx.Commit()
 }
 
+// Updates row in transaction table by id.
 func (as *TransactionService) Edit(ctx context.Context, body *models.TransactionEdit, id string) *models.Transaction {
 	db := as.Db.WithContext(ctx)
 
@@ -96,6 +99,7 @@ func (as *TransactionService) Edit(ctx context.Context, body *models.Transaction
 	return tm
 }
 
+// Gets row from transaction table by id.
 func (as *TransactionService) Get(ctx context.Context, am *models.Auth, id string, params *models.Params) *models.Transaction {
 	db := as.Db.WithContext(ctx)
 

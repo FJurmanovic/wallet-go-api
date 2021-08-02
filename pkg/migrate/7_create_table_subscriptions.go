@@ -2,12 +2,14 @@ package migrate
 
 import (
 	"fmt"
-	"github.com/go-pg/pg/v10"
-	"github.com/go-pg/pg/v10/orm"
 	"log"
 	"wallet-api/pkg/models"
+
+	"github.com/go-pg/pg/v10"
+	"github.com/go-pg/pg/v10/orm"
 )
 
+// Creates subscriptions table if it does not exist.
 func CreateTableSubscriptions(db pg.DB) error {
 	models := []interface{}{
 		(*models.Subscription)(nil),
@@ -19,10 +21,10 @@ func CreateTableSubscriptions(db pg.DB) error {
 			FKConstraints: true,
 		})
 		if err != nil {
-			log.Printf("Error Creating Table: %s", err)
+			log.Printf("Error creating table \"subscriptions\": %s", err)
 			return err
 		} else {
-			fmt.Println("Table created successfully")
+			fmt.Println("Table \"subscriptions\" created successfully")
 		}
 	}
 	return nil

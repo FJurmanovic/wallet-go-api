@@ -11,6 +11,7 @@ type ApiController struct {
 	ApiService *services.ApiService
 }
 
+// Initializes ApiController.
 func NewApiController(as *services.ApiService, s *gin.RouterGroup) *ApiController {
 	ac := new(ApiController)
 	ac.ApiService = as
@@ -21,11 +22,15 @@ func NewApiController(as *services.ApiService, s *gin.RouterGroup) *ApiControlle
 	return ac
 }
 
+// ROUTE (GET /api).
 func (ac *ApiController) getFirst(c *gin.Context) {
 	apiModel := ac.ApiService.GetFirst(c)
 	c.JSON(200, apiModel)
 }
 
+// ROUTE (POST /api/migrate).
+//
+// Requires "SECRET_CODE", "VERSION" (optional) from body.
 func (ac *ApiController) postMigrate(c *gin.Context) {
 	migrateModel := c.MustGet("migrate")
 	version := migrateModel.(middleware.SecretCodeModel).Version

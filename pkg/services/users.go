@@ -18,6 +18,7 @@ type UsersService struct {
 	Db *pg.DB
 }
 
+// Inserts new row to users table.
 func (us *UsersService) Create(ctx context.Context, registerBody *models.User) (*models.User, *models.Exception) {
 	db := us.Db.WithContext(ctx)
 
@@ -52,6 +53,7 @@ func (us *UsersService) Create(ctx context.Context, registerBody *models.User) (
 	return registerBody, exceptionReturn
 }
 
+// Gets row from users table by email and valid password.
 func (us *UsersService) Login(ctx context.Context, loginBody *models.Login) (*models.Token, *models.Exception) {
 	db := us.Db.WithContext(ctx)
 
@@ -89,6 +91,9 @@ func (us *UsersService) Login(ctx context.Context, loginBody *models.Login) (*mo
 	return tokenPayload, exceptionReturn
 }
 
+// Updates row in users table.
+//
+// IsActive column is set to false
 func (us *UsersService) Deactivate(ctx context.Context, auth *models.Auth) (*models.MessageResponse, *models.Exception) {
 	db := us.Db.WithContext(ctx)
 
@@ -124,6 +129,9 @@ func (us *UsersService) Deactivate(ctx context.Context, auth *models.Auth) (*mod
 	return mm, me
 }
 
+// Generates new jwt token.
+//
+// It encodes the user id. Based on rememberMe it is valid through 48hours or 2hours.
 func CreateToken(user *models.User, rememberMe bool) (string, error) {
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true
