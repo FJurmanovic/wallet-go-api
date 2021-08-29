@@ -15,6 +15,16 @@ type TransactionService struct {
 	Ss *SubscriptionService
 }
 
+/*
+GetAll
+
+Gets all rows from subscription type table.
+   	Args:
+		context.Context: Application context
+		string: Relations to embed
+	Returns:
+		*[]models.SubscriptionType: List of subscription type objects.
+*/
 // Inserts new row to transaction table.
 func (as *TransactionService) New(ctx context.Context, body *models.NewTransactionBody) *models.Transaction {
 	db := as.Db.WithContext(ctx)
@@ -43,6 +53,16 @@ func (as *TransactionService) New(ctx context.Context, body *models.NewTransacti
 	return tm
 }
 
+/*
+GetAll
+
+Gets all rows from subscription type table.
+   	Args:
+		context.Context: Application context
+		string: Relations to embed
+	Returns:
+		*[]models.SubscriptionType: List of subscription type objects.
+*/
 // Gets filtered rows from transaction table.
 func (as *TransactionService) GetAll(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse) {
 	db := as.Db.WithContext(ctx)
@@ -75,7 +95,17 @@ func (as *TransactionService) GetAll(ctx context.Context, am *models.Auth, walle
 	tx.Commit()
 }
 
-// Updates row in transaction table by id.
+/*
+Edit
+
+Updates row in transaction table by id.
+   	Args:
+		context.Context: Application context
+		*models.TransactionEdit: Object to edit
+		string: id to search
+	Returns:
+		*models.Transaction: Transaction object from database.
+*/
 func (as *TransactionService) Edit(ctx context.Context, body *models.TransactionEdit, id string) *models.Transaction {
 	db := as.Db.WithContext(ctx)
 
@@ -99,7 +129,18 @@ func (as *TransactionService) Edit(ctx context.Context, body *models.Transaction
 	return tm
 }
 
-// Gets row from transaction table by id.
+/*
+Get
+
+Gets row from transaction table by id.
+   	Args:
+		context.Context: Application context
+		*models.Auth: Authentication object
+		string: id to search
+		*model.Params: url query parameters
+	Returns:
+		*models.Transaction: Transaction object from database.
+*/
 func (as *TransactionService) Get(ctx context.Context, am *models.Auth, id string, params *models.Params) *models.Transaction {
 	db := as.Db.WithContext(ctx)
 

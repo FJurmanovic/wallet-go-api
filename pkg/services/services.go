@@ -7,7 +7,15 @@ import (
 	"github.com/go-pg/pg/v10"
 )
 
-// Adds filters to query and executes it.
+/*
+FilteredResponse
+
+Adds filters to query and executes it.
+   	Args:
+   		*pg.Query: postgres query
+		interface{}: model to be mapped from query execution.
+		*models.FilteredResponse: filter options.
+*/
 func FilteredResponse(qry *pg.Query, mdl interface{}, filtered *models.FilteredResponse) {
 	if filtered.Page == 0 {
 		filtered.Page = 1

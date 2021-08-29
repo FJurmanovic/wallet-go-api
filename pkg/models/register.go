@@ -16,6 +16,13 @@ type UserReturnInfo struct {
 	Email    string `json:"email"`
 }
 
+/*
+Payload
+
+Maps User object to UserReturnInfo object.
+	Returns:
+		*UserReturnInfo: mapped UserReturnInfo object
+*/
 func (um *User) Payload() *UserReturnInfo {
 	payload := new(UserReturnInfo)
 	payload.BaseModel = um.BaseModel

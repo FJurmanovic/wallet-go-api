@@ -12,7 +12,15 @@ type ApiService struct {
 	Db *pg.DB
 }
 
-// Gets first row from API table.
+/*
+GetFirst
+
+Gets first row from API table.
+   	Args:
+   		context.Context: Application context
+	Returns:
+		models.ApiModel: Api object from database.
+*/
 func (as *ApiService) GetFirst(ctx context.Context) models.ApiModel {
 	db := as.Db.WithContext(ctx)
 
@@ -21,9 +29,17 @@ func (as *ApiService) GetFirst(ctx context.Context) models.ApiModel {
 	return apiModel
 }
 
-// Starts database migration.
-//
-// Takes migration version.
+/*
+PostMigrate
+
+Starts database migration.
+   	Args:
+   		context.Context: Application context
+		string: Migration version
+	Returns:
+		*models.MessageResponse: Message response object.
+		*models.Exception: Exception response object.
+*/
 func (as *ApiService) PostMigrate(ctx context.Context, version string) (*models.MessageResponse, *models.Exception) {
 	db := as.Db.WithContext(ctx)
 

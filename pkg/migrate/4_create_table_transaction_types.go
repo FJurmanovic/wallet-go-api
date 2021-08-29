@@ -10,7 +10,15 @@ import (
 	"github.com/go-pg/pg/v10/orm"
 )
 
-// Creates transactionTypes table if it does not exist.
+/*
+CreateTableTransactionTypes
+
+Creates transaction_types table if it does not exist.
+   	Args:
+   		*pg.DB: Postgres database client
+	Returns:
+		error: Returns if there is an error with table creation
+*/
 func CreateTableTransactionTypes(db pg.DB) error {
 	models := []interface{}{
 		(*models.TransactionType)(nil),

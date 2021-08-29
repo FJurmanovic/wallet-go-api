@@ -14,7 +14,16 @@ type SubscriptionService struct {
 	Db *pg.DB
 }
 
-// Inserts new row to subscription table.
+/*
+New
+
+Inserts new row to subscription table.
+   	Args:
+   		context.Context: Application context
+		*models.NewSubscriptionBody: Request body
+	Returns:
+		*models.Subscription: Created Subscription row object from database.
+*/
 func (as *SubscriptionService) New(ctx context.Context, body *models.NewSubscriptionBody) *models.Subscription {
 	db := as.Db.WithContext(ctx)
 
@@ -49,7 +58,18 @@ func (as *SubscriptionService) New(ctx context.Context, body *models.NewSubscrip
 	return tm
 }
 
-// Gets row from subscription table by id.
+/*
+Get
+
+Gets row from subscription table by id.
+   	Args:
+   		context.Context: Application context
+		*models.Auth: Authentication model
+		string: subscription id to search
+		params: *models.Params
+	Returns:
+		*models.Subscription: Subscription row object from database.
+*/
 func (as *SubscriptionService) Get(ctx context.Context, am *models.Auth, id string, params *models.Params) *models.Subscription {
 	db := as.Db.WithContext(ctx)
 
@@ -71,7 +91,16 @@ func (as *SubscriptionService) Get(ctx context.Context, am *models.Auth, id stri
 	return wm
 }
 
-// Gets filtered rows from subscription table.
+/*
+GetAll
+
+Gets filtered rows from subscription table.
+   	Args:
+   		context.Context: Application context
+		*models.Auth: Authentication object
+		string: Wallet id to search
+		*models.FilteredResponse: filter options
+*/
 func (as *SubscriptionService) GetAll(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse) {
 	db := as.Db.WithContext(ctx)
 
@@ -94,7 +123,17 @@ func (as *SubscriptionService) GetAll(ctx context.Context, am *models.Auth, wall
 	tx.Commit()
 }
 
-// Updates row from subscription table by id.
+/*
+Edit
+
+Updates row from subscription table by id.
+   	Args:
+   		context.Context: Application context
+		*models.SubscriptionEdit: Values to edit
+		string: id to search
+	Returns:
+		*models.Subscription: Edited Subscription row object from database.
+*/
 func (as *SubscriptionService) Edit(ctx context.Context, body *models.SubscriptionEdit, id string) *models.Subscription {
 	db := as.Db.WithContext(ctx)
 
@@ -118,9 +157,18 @@ func (as *SubscriptionService) Edit(ctx context.Context, body *models.Subscripti
 	return tm
 }
 
-// Updates row in subscription table by id.
-//
-// Ends subscription with current date.
+/*
+End
+
+Updates row in subscription table by id.
+
+Ends subscription with current date.
+   	Args:
+   		context.Context: Application context
+		string: id to search
+	Returns:
+		*models.Subscription: Created Subscription row object from database.
+*/
 func (as *SubscriptionService) End(ctx context.Context, id string) *models.Subscription {
 	db := as.Db.WithContext(ctx)
 
@@ -139,7 +187,14 @@ func (as *SubscriptionService) End(ctx context.Context, id string) *models.Subsc
 	return tm
 }
 
-// Generates and Inserts new Transaction rows from the subscription model.
+/*
+SubToTrans
+
+Generates and Inserts new Transaction rows from the subscription model.
+   	Args:
+		*models.Subscription: Subscription model to generate new transactions from
+		*pg.Tx: Postgres query context
+*/
 func (as *SubscriptionService) SubToTrans(subModel *models.Subscription, tx *pg.Tx) {
 
 	now := time.Now()

@@ -12,7 +12,16 @@ type TransactionController struct {
 	TransactionService *services.TransactionService
 }
 
-// Initializes TransactionController.
+/*
+NewTransactionController
+
+Initializes TransactionController.
+	Args:
+		*services.TransactionService: Transaction service
+		*gin.RouterGroup: Gin Router Group
+	Returns:
+		*TransactionController: Controller for "transaction" route interactions
+*/
 func NewTransactionController(as *services.TransactionService, s *gin.RouterGroup) *TransactionController {
 	wc := new(TransactionController)
 	wc.TransactionService = as
@@ -25,6 +34,11 @@ func NewTransactionController(as *services.TransactionService, s *gin.RouterGrou
 	return wc
 }
 
+/*
+New
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (POST /transactions)
 func (wc *TransactionController) New(c *gin.Context) {
 	body := new(models.NewTransactionBody)
@@ -37,6 +51,11 @@ func (wc *TransactionController) New(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
+/*
+GetAll
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (GET /transactions)
 func (wc *TransactionController) GetAll(c *gin.Context) {
 	body := new(models.Auth)
@@ -51,6 +70,11 @@ func (wc *TransactionController) GetAll(c *gin.Context) {
 	c.JSON(200, fr)
 }
 
+/*
+Edit
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (PUT /transactions/:id)
 func (wc *TransactionController) Edit(c *gin.Context) {
 	body := new(models.TransactionEdit)
@@ -65,6 +89,11 @@ func (wc *TransactionController) Edit(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
+/*
+Get
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (GET /transactions/:id)
 func (wc *TransactionController) Get(c *gin.Context) {
 	body := new(models.Auth)

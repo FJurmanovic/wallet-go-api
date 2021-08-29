@@ -10,7 +10,15 @@ import (
 	"github.com/go-pg/pg/v10/orm"
 )
 
-// Creates api users if it does not exist.
+/*
+CreateTableUsers
+
+Creates users table if it does not exist.
+   	Args:
+   		*pg.DB: Postgres database client
+	Returns:
+		error: Returns if there is an error with table creation
+*/
 func CreateTableUsers(db pg.DB) error {
 	models := []interface{}{
 		(*models.User)(nil),

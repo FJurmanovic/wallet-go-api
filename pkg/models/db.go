@@ -12,6 +12,11 @@ type BaseModel struct {
 	DateUpdated time.Time `json:"dateUpdated" pg:"date_updated"`
 }
 
+/*
+Init
+
+Initializes base model with DateCreated, DateUpdated, and Id values.
+*/
 func (cm *BaseModel) Init() {
 	date := time.Now()
 	cm.Id = uuid.NewString()

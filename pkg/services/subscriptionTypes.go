@@ -12,7 +12,16 @@ type SubscriptionTypeService struct {
 	Db *pg.DB
 }
 
-// Inserts new row to subscription type table.
+/*
+New
+
+Inserts new row to subscription type table.
+   	Args:
+		context.Context: Application context
+		*models.NewSubscriptionTypeBody: Values to create new row
+	Returns:
+		*models.SubscriptionType: Created row from database.
+*/
 func (as *SubscriptionTypeService) New(ctx context.Context, body *models.NewSubscriptionTypeBody) *models.SubscriptionType {
 	db := as.Db.WithContext(ctx)
 
@@ -27,7 +36,16 @@ func (as *SubscriptionTypeService) New(ctx context.Context, body *models.NewSubs
 	return tm
 }
 
-// Gets all rows from subscription type table.
+/*
+GetAll
+
+Gets all rows from subscription type table.
+   	Args:
+		context.Context: Application context
+		string: Relations to embed
+	Returns:
+		*[]models.SubscriptionType: List of subscription type objects.
+*/
 func (as *SubscriptionTypeService) GetAll(ctx context.Context, embed string) *[]models.SubscriptionType {
 	db := as.Db.WithContext(ctx)
 

@@ -12,7 +12,16 @@ type TransactionTypeService struct {
 	Db *pg.DB
 }
 
-// Inserts new row to transaction type table.
+/*
+New
+
+Inserts new row to transaction type table.
+   	Args:
+		context.Context: Application context
+		*models.NewTransactionTypeBody: object to create
+	Returns:
+		*models.TransactionType: Transaction Type object from database.
+*/
 func (as *TransactionTypeService) New(ctx context.Context, body *models.NewTransactionTypeBody) *models.TransactionType {
 	db := as.Db.WithContext(ctx)
 
@@ -27,7 +36,16 @@ func (as *TransactionTypeService) New(ctx context.Context, body *models.NewTrans
 	return tm
 }
 
-// Gets all rows from transaction type table.
+/*
+GetAll
+
+Gets all rows from transaction type table.
+   	Args:
+		context.Context: Application context
+		string: Relations to embed
+	Returns:
+		*[]models.TransactionType: List of Transaction type objects from database.
+*/
 func (as *TransactionTypeService) GetAll(ctx context.Context, embed string) *[]models.TransactionType {
 	db := as.Db.WithContext(ctx)
 
