@@ -8,7 +8,15 @@ import (
 	"github.com/go-pg/pg/v10"
 )
 
-// Populates transactionTypes table if it does not exist.
+/*
+PopulateTransactionTypes
+
+Populates transaction_types table if it exists.
+   	Args:
+   		*pg.DB: Postgres database client
+	Returns:
+		error: Returns if there is an error with populating table
+*/
 func PopulateTransactionTypes(db pg.DB) error {
 	gain := new(models.TransactionType)
 	expense := new(models.TransactionType)

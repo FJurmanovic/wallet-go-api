@@ -2,9 +2,13 @@ package middleware
 
 import "github.com/gin-gonic/gin"
 
-// CORS Middleware.
-//
-// Add needed headers to make cors functioning.
+/*
+CORSMiddleware
+
+Add needed headers to make cors functioning.
+	Args:
+		*gin.Context: Gin Application Context.
+*/
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")

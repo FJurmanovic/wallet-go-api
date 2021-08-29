@@ -8,7 +8,15 @@ import (
 	"github.com/go-pg/pg/v10"
 )
 
-// Populates subscriptionTypes table if it does not exist.
+/*
+PopulateSubscriptionTypes
+
+Populates subscription_types table if it exists.
+   	Args:
+   		*pg.DB: Postgres database client
+	Returns:
+		error: Returns if there is an error with populating table
+*/
 func PopulateSubscriptionTypes(db pg.DB) error {
 	daily := new(models.SubscriptionType)
 	weekly := new(models.SubscriptionType)

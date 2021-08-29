@@ -10,6 +10,14 @@ import (
 	"github.com/go-pg/pg/v10"
 )
 
+/*
+Routes
+
+Initializes web api controllers and its corresponding routes.
+	Args:
+		*gin.Engine: Gin Engine
+		*pg.DB: Postgres database client
+*/
 func Routes(s *gin.Engine, db *pg.DB) {
 	ver := s.Group(configs.Prefix)
 

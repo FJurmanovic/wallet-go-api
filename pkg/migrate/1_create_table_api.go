@@ -10,7 +10,15 @@ import (
 	"github.com/go-pg/pg/v10/orm"
 )
 
-// Creates api table if it does not exist.
+/*
+CreateTableApi
+
+Creates api table if it does not exist.
+   	Args:
+   		*pg.DB: Postgres database client
+	Returns:
+		error: Returns if there is an error with table creation
+*/
 func CreateTableApi(db pg.DB) error {
 
 	models := []interface{}{

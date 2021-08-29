@@ -12,7 +12,16 @@ type WalletsController struct {
 	WalletService *services.WalletService
 }
 
-// Initializes WalletsController.
+/*
+NewWalletsController
+
+Initializes WalletsController.
+	Args:
+		*services.WalletService: Wallet service
+		*gin.RouterGroup: Gin Router Group
+	Returns:
+		*WalletsController: Controller for "wallet" route interactions
+*/
 func NewWalletsController(as *services.WalletService, s *gin.RouterGroup) *WalletsController {
 	wc := new(WalletsController)
 	wc.WalletService = as
@@ -25,6 +34,11 @@ func NewWalletsController(as *services.WalletService, s *gin.RouterGroup) *Walle
 	return wc
 }
 
+/*
+New
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (POST /wallet)
 func (wc *WalletsController) New(c *gin.Context) {
 	body := new(models.NewWalletBody)
@@ -41,6 +55,11 @@ func (wc *WalletsController) New(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
+/*
+GetAll
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (GET /wallet)
 func (wc *WalletsController) GetAll(c *gin.Context) {
 	body := new(models.Auth)
@@ -54,6 +73,11 @@ func (wc *WalletsController) GetAll(c *gin.Context) {
 	c.JSON(200, fr)
 }
 
+/*
+Edit
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (PUT /wallet/:id)
 func (wc *WalletsController) Edit(c *gin.Context) {
 	body := new(models.WalletEdit)
@@ -68,6 +92,11 @@ func (wc *WalletsController) Edit(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
+/*
+Get
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (GET /wallet/:id)
 func (wc *WalletsController) Get(c *gin.Context) {
 	params := new(models.Params)

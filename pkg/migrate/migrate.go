@@ -4,7 +4,15 @@ import (
 	"github.com/go-pg/pg/v10"
 )
 
-// Starts database migration.
+/*
+Start
+
+Starts database migration.
+   	Args:
+   		*pg.DB: Postgres database client
+	Returns:
+		error: Returns if there is an error with populating table
+*/
 func Start(conn *pg.DB, version string) {
 	migration001 := Migration{
 		Version: "001",
