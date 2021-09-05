@@ -29,6 +29,7 @@ func Routes(s *gin.Engine, db *pg.DB) {
 	transactionType := ver.Group("transaction-type", middleware.Auth)
 	subscription := ver.Group("subscription", middleware.Auth)
 	subscriptionType := ver.Group("subscription-type", middleware.Auth)
+	transactionStatus := ver.Group("transaction-status", middleware.Auth)
 	
 	s.NoRoute(func(c *gin.Context) {
 		c.JSON(404, gin.H{"code": "PAGE_NOT_FOUND", "message": "Page not found"})
@@ -42,6 +43,7 @@ func Routes(s *gin.Engine, db *pg.DB) {
 	transactionTypeService := services.TransactionTypeService{Db: db}
 	subscriptionService := services.SubscriptionService{Db: db}
 	subscriptionTypeService := services.SubscriptionTypeService{Db: db}
+	transactionStatusService := services.TransactionStatusService{Db: db}
 
 	walletService.Ss = &subscriptionService
 	transactionService.Ss = &subscriptionService
@@ -54,4 +56,5 @@ func Routes(s *gin.Engine, db *pg.DB) {
 	controllers.NewTransactionTypeController(&transactionTypeService, transactionType)
 	controllers.NewSubscriptionController(&subscriptionService, subscription)
 	controllers.NewSubscriptionTypeController(&subscriptionTypeService, subscriptionType)
+	controllers.NewTransactionStatusController(&transactionStatusService, transactionStatus)
 }

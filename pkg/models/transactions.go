@@ -11,6 +11,8 @@ type Transaction struct {
 	Description       string           `json:"description" pg:"description"`
 	TransactionTypeID string           `json:"transactionTypeId", pg:"transaction_type_id"`
 	TransactionType   *TransactionType `json:"transactionType", pg:"rel:has-one, fk:transaction_type_id"`
+	TransactionStatusID string  `json:"transactionStatusId", pg:"transaction_status_id"`
+	TransactionStatus *TransactionStatus `json:"transactionStatus", pg:"rel:has-one, fk:transaction_status_id"`
 	WalletID          string           `json:"walletId", pg:"wallet_id"`
 	Amount            float32          `json:"amount", pg:"amount,default:0"`
 	Wallet            *Wallet          `json:"wallet" pg:"rel:has-one, fk:wallet_id"`

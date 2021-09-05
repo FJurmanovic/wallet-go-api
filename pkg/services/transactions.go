@@ -16,23 +16,25 @@ type TransactionService struct {
 }
 
 /*
-GetAll
+New new row into transaction table
 
-Gets all rows from subscription type table.
+Inserts
    	Args:
 		context.Context: Application context
-		string: Relations to embed
+		*models.NewTransactionBody: Transaction body object
 	Returns:
-		*[]models.SubscriptionType: List of subscription type objects.
+		*models.Transaction: Transaction object
 */
-// Inserts new row to transaction table.
 func (as *TransactionService) New(ctx context.Context, body *models.NewTransactionBody) *models.Transaction {
 	db := as.Db.WithContext(ctx)
 
 	tm := new(models.Transaction)
+	transactionStatus := new(models.TransactionStatus)
 
 	tx, _ := db.Begin()
 	defer tx.Rollback()
+
+	tx.Model(transactionStatus).Where("? = ?", pg.Ident("status"), "completed").Select()
 
 	amount, _ := body.Amount.Float64()
 
@@ -42,6 +44,7 @@ func (as *TransactionService) New(ctx context.Context, body *models.NewTransacti
 	tm.Description = body.Description
 	tm.TransactionDate = body.TransactionDate
 	tm.Amount = float32(math.Round(amount*100) / 100)
+	tm.TransactionStatusID = transactionStatus.Id
 
 	if body.TransactionDate.IsZero() {
 		tm.TransactionDate = time.Now()
