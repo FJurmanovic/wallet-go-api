@@ -51,8 +51,6 @@ func (as *SubscriptionService) New(ctx context.Context, body *models.NewSubscrip
 	defer tx.Rollback()
 
 	tx.Model(tm).Insert()
-
-	as.SubToTrans(tm, tx)
 	tx.Commit()
 
 	return tm
@@ -82,10 +80,6 @@ func (as *SubscriptionService) Get(ctx context.Context, am *models.Auth, id stri
 	qry := tx.Model(wm)
 	common.GenerateEmbed(qry, params.Embed).WherePK().Select()
 
-	if (*wm).HasNew() {
-		as.SubToTrans(wm, tx)
-	}
-
 	tx.Commit()
 
 	return wm
@@ -114,11 +108,6 @@ func (as *SubscriptionService) GetAll(ctx context.Context, am *models.Auth, wall
 		query = query.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
 
-	for _, sub := range *wm {
-		if sub.HasNew() {
-			as.SubToTrans(&sub, tx)
-		}
-	}
 	FilteredResponse(query, wm, filtered)
 	tx.Commit()
 }
@@ -202,7 +191,9 @@ func (as *SubscriptionService) SubToTrans(subModel *models.Subscription, tx *pg.
 	currentYear, currentMonth, _ := now.Date()
 	currentLocation := now.Location()
 
+	transactionStatus := new(models.TransactionStatus)
 	firstOfNextMonth := time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, currentLocation)
+	tx.Model(transactionStatus).Where("? = ?", pg.Ident("status"), "pending").Select()
 	//tzFirstOfNextMonth := firstOfNextMonth.In(subModel.StartDate.Location())
 
 	startDate := subModel.StartDate
@@ -222,6 +213,7 @@ func (as *SubscriptionService) SubToTrans(subModel *models.Subscription, tx *pg.
 	for startDate.Before(stopDate) {
 		trans := subModel.ToTrans()
 		trans.TransactionDate = startDate
+		trans.TransactionStatusID = transactionStatus.Id
 		if startDate.After(subModel.LastTransactionDate) && (startDate.Before(now) || startDate.Equal(now)) {
 			*transactions = append(*transactions, *trans)
 		}

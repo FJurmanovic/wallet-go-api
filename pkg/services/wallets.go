@@ -147,12 +147,6 @@ func (as *WalletService) GetHeader(ctx context.Context, am *models.Auth, walletI
 	firstOfNextMonth := time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, currentLocation)
 	firstOfMonthAfterNext := time.Date(currentYear, currentMonth+2, 1, 0, 0, 0, 0, currentLocation)
 
-	for _, sub := range *subscriptions {
-		if sub.HasNew() {
-			as.Ss.SubToTrans(&sub, tx)
-		}
-	}
-
 	query := tx.Model(transactions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType")
 	if walletId != "" {
 		query.Where("? = ?", pg.Ident("wallet_id"), walletId)

@@ -30,6 +30,7 @@ func NewTransactionController(as *services.TransactionService, s *gin.RouterGrou
 	s.GET("", wc.GetAll)
 	s.PUT("/:id", wc.Edit)
 	s.GET("/:id", wc.Get)
+	s.GET("check", wc.Check)
 
 	return wc
 }
@@ -65,7 +66,28 @@ func (wc *TransactionController) GetAll(c *gin.Context) {
 	fr := FilteredResponse(c)
 	wallet, _ := c.GetQuery("walletId")
 
-	wc.TransactionService.GetAll(c, body, wallet, fr)
+	transactionStatusId, _ := c.GetQuery("transactionStatusId")
+
+	wc.TransactionService.GetAll(c, body, wallet, fr, transactionStatusId)
+
+	c.JSON(200, fr)
+}
+
+/*
+Check
+	Args:
+		*gin.Context: Gin Application Context
+*/
+// ROUTE (GET /transactions)
+func (wc *TransactionController) Check(c *gin.Context) {
+	body := new(models.Auth)
+	auth := c.MustGet("auth")
+	body.Id = auth.(*models.Auth).Id
+
+	fr := FilteredResponse(c)
+	wallet, _ := c.GetQuery("walletId")
+
+	wc.TransactionService.Check(c, body, wallet, fr)
 
 	c.JSON(200, fr)
 }

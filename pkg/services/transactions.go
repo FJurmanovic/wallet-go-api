@@ -67,7 +67,7 @@ Gets all rows from subscription type table.
 		*[]models.SubscriptionType: List of subscription type objects.
 */
 // Gets filtered rows from transaction table.
-func (as *TransactionService) GetAll(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse) {
+func (as *TransactionService) GetAll(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse, transactionStatusId string) {
 	db := as.Db.WithContext(ctx)
 
 	wm := new([]models.Transaction)
@@ -77,6 +77,47 @@ func (as *TransactionService) GetAll(ctx context.Context, am *models.Auth, walle
 	defer tx.Rollback()
 
 	query2 := tx.Model(sm).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)
+	if walletId != "" {
+		query2 = query2.Where("? = ?", pg.Ident("wallet_id"), walletId)
+	}
+	if transactionStatusId != "" {
+		query2 = query2.Where("? = ?", pg.Ident("transaction_status_id"), transactionStatusId)
+	}
+	query2.Select()
+
+	query := tx.Model(wm).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)
+	if walletId != "" {
+		query = query.Where("? = ?", pg.Ident("wallet_id"), walletId)
+	}
+
+	FilteredResponse(query, wm, filtered)
+
+	tx.Commit()
+}
+
+/*
+Check
+
+Checks subscriptions and create transacitons.
+   	Args:
+		context.Context: Application context
+		string: Relations to embed
+	Returns:
+		*[]models.SubscriptionType: List of subscription type objects.
+*/
+// Gets filtered rows from transaction table.
+func (as *TransactionService) Check(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse) {
+	db := as.Db.WithContext(ctx)
+
+	transactionStatus := new(models.TransactionStatus)
+	wm := new([]models.Transaction)
+	sm := new([]models.Subscription)
+
+	tx, _ := db.Begin()
+	defer tx.Rollback()
+	tx.Model(transactionStatus).Where("? = ?", pg.Ident("status"), "pending").Select()
+
+	query2 := tx.Model(sm).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Where("? = ?", pg.Ident("transaction_status_id"), transactionStatus.Id)
 	if walletId != "" {
 		query2 = query2.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
