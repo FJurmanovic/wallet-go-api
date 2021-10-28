@@ -174,6 +174,45 @@ func (as *TransactionService) Edit(ctx context.Context, body *models.Transaction
 }
 
 /*
+Bulk Edit
+
+Updates row in transaction table by id.
+   	Args:
+		context.Context: Application context
+		?[]models.Transaction Bulk Edit: Object to edit
+		string: id to search
+	Returns:
+		*models.Transaction: Transaction object from database.
+*/
+func (as *TransactionService) BulkEdit(ctx context.Context, body *[]models.TransactionEdit) *[]models.Transaction {
+	db := as.Db.WithContext(ctx)
+	tx, _ := db.Begin()
+	defer tx.Rollback()
+
+	transactions := new([]models.Transaction)
+
+	for _, transaction := range *body {
+
+		amount, _ := transaction.Amount.Float64()
+
+		tm := new(models.Transaction)
+		tm.Id = transaction.Id
+		tm.Description = transaction.Description
+		tm.WalletID = transaction.WalletID
+		tm.TransactionTypeID = transaction.TransactionTypeID
+		tm.TransactionDate = transaction.TransactionDate
+		tm.Amount = float32(math.Round(amount*100) / 100)
+
+		tx.Model(tm).WherePK().UpdateNotZero()
+		*transactions = append(*transactions, *tm)
+	}
+
+	tx.Commit()
+
+	return transactions
+}
+
+/*
 Get
 
 Gets row from transaction table by id.

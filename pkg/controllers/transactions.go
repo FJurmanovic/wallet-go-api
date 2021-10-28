@@ -31,6 +31,7 @@ func NewTransactionController(as *services.TransactionService, s *gin.RouterGrou
 	s.PUT("/:id", wc.Edit)
 	s.GET("/:id", wc.Get)
 	s.GET("check", wc.Check)
+	s.PUT("/bulk", wc.BulkEdit)
 
 	return wc
 }
@@ -108,6 +109,23 @@ func (wc *TransactionController) Edit(c *gin.Context) {
 	id := c.Param("id")
 
 	wm := wc.TransactionService.Edit(c, body, id)
+	c.JSON(200, wm)
+}
+
+/*
+BulkEdit
+	Args:
+		*gin.Context: Gin Application Context
+*/
+// ROUTE (PUT /transactions/:id)
+func (wc *TransactionController) BulkEdit(c *gin.Context) {
+	body := new([]models.TransactionEdit)
+	if err := c.ShouldBind(body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	wm := wc.TransactionService.BulkEdit(c, body)
 	c.JSON(200, wm)
 }
 
