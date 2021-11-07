@@ -67,9 +67,10 @@ func (wc *TransactionController) GetAll(c *gin.Context) {
 	fr := FilteredResponse(c)
 	wallet, _ := c.GetQuery("walletId")
 
-	transactionStatusId, _ := c.GetQuery("transactionStatusId")
+	noPendingQry, _ := c.GetQuery("noPending")
+	noPending := noPendingQry != ""
 
-	wc.TransactionService.GetAll(c, body, wallet, fr, transactionStatusId)
+	wc.TransactionService.GetAll(c, body, wallet, fr, noPending)
 
 	c.JSON(200, fr)
 }

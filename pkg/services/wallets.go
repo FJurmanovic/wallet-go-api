@@ -128,10 +128,12 @@ func (as *WalletService) GetHeader(ctx context.Context, am *models.Auth, walletI
 	wallets := new([]models.WalletTransactions)
 	transactions := new([]models.Transaction)
 	subscriptions := new([]models.Subscription)
+	transactionStatus := new(models.TransactionStatus)
 
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 
+	tx.Model(transactionStatus).Where("? = ?", pg.Ident("status"), "completed").Select()
 	query2 := tx.Model(subscriptions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType").Relation("SubscriptionType")
 	if walletId != "" {
 		query2.Where("? = ?", pg.Ident("wallet_id"), walletId)
@@ -151,6 +153,7 @@ func (as *WalletService) GetHeader(ctx context.Context, am *models.Auth, walletI
 	if walletId != "" {
 		query.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
+	query = query.Where("? = ?", pg.Ident("transaction_status_id"), transactionStatus.Id)
 	query.Select()
 	tx.Commit()
 
