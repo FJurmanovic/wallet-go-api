@@ -158,6 +158,7 @@ func (as *TransactionService) Edit(ctx context.Context, body *models.Transaction
 	tm.WalletID = body.WalletID
 	tm.TransactionTypeID = body.TransactionTypeID
 	tm.TransactionDate = body.TransactionDate
+	tm.TransactionStatusID = body.TransactionStatusID
 	tm.Amount = float32(math.Round(amount*100) / 100)
 
 	tx, _ := db.Begin()
