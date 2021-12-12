@@ -12,7 +12,16 @@ type SubscriptionController struct {
 	SubscriptionService *services.SubscriptionService
 }
 
-// Initializes SubscriptionController.
+/*
+NewSubscriptionController
+
+Initializes SubscriptionController.
+	Args:
+		*services.SubscriptionService: Subscription service
+		*gin.RouterGroup: Gin Router Group
+	Returns:
+		*SubscriptionController: Controller for "subscription" route interactions
+*/
 func NewSubscriptionController(as *services.SubscriptionService, s *gin.RouterGroup) *SubscriptionController {
 	wc := new(SubscriptionController)
 	wc.SubscriptionService = as
@@ -30,6 +39,11 @@ func NewSubscriptionController(as *services.SubscriptionService, s *gin.RouterGr
 	return wc
 }
 
+/*
+New
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (POST /subscription)
 func (wc *SubscriptionController) New(c *gin.Context) {
 	body := new(models.NewSubscriptionBody)
@@ -42,6 +56,11 @@ func (wc *SubscriptionController) New(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
+/*
+Edit
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (PUT /subscription/:id)
 func (wc *SubscriptionController) Edit(c *gin.Context) {
 	body := new(models.SubscriptionEdit)
@@ -56,6 +75,11 @@ func (wc *SubscriptionController) Edit(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
+/*
+Get
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (GET /subscription/:id)
 func (wc *SubscriptionController) Get(c *gin.Context) {
 	body := new(models.Auth)
@@ -94,6 +118,11 @@ func (wc *SubscriptionController) End(c *gin.Context) {
 	c.JSON(200, fr)
 }
 
+/*
+GetAll
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (GET /subscription)
 func (wc *SubscriptionController) GetAll(c *gin.Context) {
 	body := new(models.Auth)

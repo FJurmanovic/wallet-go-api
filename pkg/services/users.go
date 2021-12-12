@@ -18,7 +18,18 @@ type UsersService struct {
 	Db *pg.DB
 }
 
-// Inserts new row to users table.
+
+/*
+Create
+
+Inserts new row to users table.
+   	Args:
+		context.Context: Application context
+		*models.User: User object to create
+	Returns:
+		*models.User: User object from database
+		*models.Exception
+*/
 func (us *UsersService) Create(ctx context.Context, registerBody *models.User) (*models.User, *models.Exception) {
 	db := us.Db.WithContext(ctx)
 
@@ -53,7 +64,17 @@ func (us *UsersService) Create(ctx context.Context, registerBody *models.User) (
 	return registerBody, exceptionReturn
 }
 
-// Gets row from users table by email and valid password.
+/*
+Login
+
+Gets row from users table by email and valid password.
+   	Args:
+		context.Context: Application context
+		*models.Login: object to search
+	Returns:
+		*models.Token: new session token
+		*models.Exception
+*/
 func (us *UsersService) Login(ctx context.Context, loginBody *models.Login) (*models.Token, *models.Exception) {
 	db := us.Db.WithContext(ctx)
 
@@ -91,9 +112,19 @@ func (us *UsersService) Login(ctx context.Context, loginBody *models.Login) (*mo
 	return tokenPayload, exceptionReturn
 }
 
-// Updates row in users table.
-//
-// IsActive column is set to false
+/*
+Deactivate
+
+Updates row in users table.
+
+IsActive column is set to false
+   	Args:
+		context.Context: Application context
+		*models.Auth: Authentication object
+	Returns:
+		*models.MessageResponse
+		*models.Exception
+*/
 func (us *UsersService) Deactivate(ctx context.Context, auth *models.Auth) (*models.MessageResponse, *models.Exception) {
 	db := us.Db.WithContext(ctx)
 
@@ -129,9 +160,19 @@ func (us *UsersService) Deactivate(ctx context.Context, auth *models.Auth) (*mod
 	return mm, me
 }
 
-// Generates new jwt token.
-//
-// It encodes the user id. Based on rememberMe it is valid through 48hours or 2hours.
+/*
+CreateToken
+
+Generates new jwt token.
+
+It encodes the user id. Based on rememberMe it is valid through 48hours or 2hours.
+   	Args:
+		*models.User: User object to encode
+		bool: Should function generate longer lasting token (48hrs)
+	Returns:
+		string: Generated token
+		error: Error that occured in the process
+*/
 func CreateToken(user *models.User, rememberMe bool) (string, error) {
 	atClaims := jwt.MapClaims{}
 	atClaims["authorized"] = true

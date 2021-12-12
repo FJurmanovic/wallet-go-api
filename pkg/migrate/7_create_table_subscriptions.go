@@ -9,7 +9,15 @@ import (
 	"github.com/go-pg/pg/v10/orm"
 )
 
-// Creates subscriptions table if it does not exist.
+/*
+CreateTableSubscriptions
+
+Creates subscriptions table if it does not exist.
+   	Args:
+   		*pg.DB: Postgres database client
+	Returns:
+		error: Returns if there is an error with table creation
+*/
 func CreateTableSubscriptions(db pg.DB) error {
 	models := []interface{}{
 		(*models.Subscription)(nil),

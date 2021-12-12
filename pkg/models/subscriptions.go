@@ -49,6 +49,13 @@ type SubscriptionEnd struct {
 	Id string `json:"id" form:"id"`
 }
 
+/*
+ToTrans
+
+Maps Subscription object to Transaction object.
+	Returns:
+		*Transaction: mapped Transaction object
+*/
 func (cm *Subscription) ToTrans() *Transaction {
 	trans := new(Transaction)
 	trans.Init()
@@ -63,6 +70,13 @@ func (cm *Subscription) ToTrans() *Transaction {
 	return trans
 }
 
+/*
+HasNew
+
+Checks if Subscription reached new transaction interval.
+	Returns:
+		bool: Is new transaction interval reached
+*/
 func (cm *Subscription) HasNew() bool {
 	trans := cm.TransactionType
 	if trans != nil {

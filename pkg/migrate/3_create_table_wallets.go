@@ -10,7 +10,15 @@ import (
 	"github.com/go-pg/pg/v10/orm"
 )
 
-// Creates wallets table if it does not exist.
+/*
+CreateTableWallets
+
+Creates wallets table if it does not exist.
+   	Args:
+   		*pg.DB: Postgres database client
+	Returns:
+		error: Returns if there is an error with table creation
+*/
 func CreateTableWallets(db pg.DB) error {
 	models := []interface{}{
 		(*models.Wallet)(nil),

@@ -5,6 +5,14 @@ import (
 	"github.com/go-pg/pg/v10"
 )
 
+/*
+Init
+
+Initializes Web API Routes.
+	Args:
+		*gin.Engine: Gin Engine.
+		*pg.DB: Postgres Database Client.
+*/
 func Init(s *gin.Engine, db *pg.DB) {
 	Routes(s, db)
 }

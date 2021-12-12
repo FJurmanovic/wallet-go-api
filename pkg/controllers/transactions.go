@@ -12,7 +12,16 @@ type TransactionController struct {
 	TransactionService *services.TransactionService
 }
 
-// Initializes TransactionController.
+/*
+NewTransactionController
+
+Initializes TransactionController.
+	Args:
+		*services.TransactionService: Transaction service
+		*gin.RouterGroup: Gin Router Group
+	Returns:
+		*TransactionController: Controller for "transaction" route interactions
+*/
 func NewTransactionController(as *services.TransactionService, s *gin.RouterGroup) *TransactionController {
 	wc := new(TransactionController)
 	wc.TransactionService = as
@@ -21,10 +30,17 @@ func NewTransactionController(as *services.TransactionService, s *gin.RouterGrou
 	s.GET("", wc.GetAll)
 	s.PUT("/:id", wc.Edit)
 	s.GET("/:id", wc.Get)
+	s.GET("check", wc.Check)
+	s.PUT("/bulk", wc.BulkEdit)
 
 	return wc
 }
 
+/*
+New
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (POST /transactions)
 func (wc *TransactionController) New(c *gin.Context) {
 	body := new(models.NewTransactionBody)
@@ -37,6 +53,11 @@ func (wc *TransactionController) New(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
+/*
+GetAll
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (GET /transactions)
 func (wc *TransactionController) GetAll(c *gin.Context) {
 	body := new(models.Auth)
@@ -46,11 +67,38 @@ func (wc *TransactionController) GetAll(c *gin.Context) {
 	fr := FilteredResponse(c)
 	wallet, _ := c.GetQuery("walletId")
 
-	wc.TransactionService.GetAll(c, body, wallet, fr)
+	noPendingQry, _ := c.GetQuery("noPending")
+	noPending := noPendingQry != ""
+
+	wc.TransactionService.GetAll(c, body, wallet, fr, noPending)
 
 	c.JSON(200, fr)
 }
 
+/*
+Check
+	Args:
+		*gin.Context: Gin Application Context
+*/
+// ROUTE (GET /transactions)
+func (wc *TransactionController) Check(c *gin.Context) {
+	body := new(models.Auth)
+	auth := c.MustGet("auth")
+	body.Id = auth.(*models.Auth).Id
+
+	fr := FilteredResponse(c)
+	wallet, _ := c.GetQuery("walletId")
+
+	wc.TransactionService.Check(c, body, wallet, fr)
+
+	c.JSON(200, fr)
+}
+
+/*
+Edit
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (PUT /transactions/:id)
 func (wc *TransactionController) Edit(c *gin.Context) {
 	body := new(models.TransactionEdit)
@@ -65,6 +113,28 @@ func (wc *TransactionController) Edit(c *gin.Context) {
 	c.JSON(200, wm)
 }
 
+/*
+BulkEdit
+	Args:
+		*gin.Context: Gin Application Context
+*/
+// ROUTE (PUT /transactions/:id)
+func (wc *TransactionController) BulkEdit(c *gin.Context) {
+	body := new([]models.TransactionEdit)
+	if err := c.ShouldBind(body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	wm := wc.TransactionService.BulkEdit(c, body)
+	c.JSON(200, wm)
+}
+
+/*
+Get
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (GET /transactions/:id)
 func (wc *TransactionController) Get(c *gin.Context) {
 	body := new(models.Auth)

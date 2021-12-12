@@ -9,9 +9,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Secret Code Middleware.
-//
-// Checks if secret code from body is valid.
+/*
+SecretCode
+
+Checks if secret code from body is valid.
+   	Args:
+   		*gin.Context: Gin Application Context.
+*/
 func SecretCode(c *gin.Context) {
 	exceptionReturn := new(models.Exception)
 	secretCode := ExtractCode(c)
@@ -29,7 +33,13 @@ func SecretCode(c *gin.Context) {
 	c.Next()
 }
 
-// Extracts the secret code from body
+/*
+ExtractCode
+
+Extracts the secret code from body.
+   	Args:
+   		*gin.Context: Gin Application Context.
+*/
 func ExtractCode(c *gin.Context) SecretCodeModel {
 	secret := new(SecretCodeModel)
 	if err := c.ShouldBindJSON(&secret); err != nil {

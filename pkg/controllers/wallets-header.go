@@ -11,7 +11,16 @@ type WalletsHeaderController struct {
 	WalletService *services.WalletService
 }
 
-// Initializes WalletsHeaderController.
+/*
+NewWalletsHeaderController
+
+Initializes WalletsHeaderController.
+	Args:
+		*services.WalletService: Wallet service
+		*gin.RouterGroup: Gin Router Group
+	Returns:
+		*WalletsHeaderController: Controller for "wallet/wallet-header" route interactions
+*/
 func NewWalletsHeaderController(as *services.WalletService, s *gin.RouterGroup) *WalletsHeaderController {
 	wc := new(WalletsHeaderController)
 	wc.WalletService = as
@@ -21,6 +30,11 @@ func NewWalletsHeaderController(as *services.WalletService, s *gin.RouterGroup) 
 	return wc
 }
 
+/*
+Get
+	Args:
+		*gin.Context: Gin Application Context
+*/
 // ROUTE (GET /wallet/wallet-header)
 func (wc *WalletsHeaderController) Get(c *gin.Context) {
 	body := new(models.Auth)
