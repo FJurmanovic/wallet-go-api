@@ -51,6 +51,7 @@ func (rc *AuthController) PostLogin(c *gin.Context) {
 
 	if exceptionReturn.Message != "" {
 		c.JSON(exceptionReturn.StatusCode, exceptionReturn)
+		return
 	} else {
 		c.JSON(200, returnedUser)
 	}
@@ -74,6 +75,7 @@ func (rc *AuthController) PostRegister(c *gin.Context) {
 
 	if exceptionReturn.Message != "" {
 		c.JSON(exceptionReturn.StatusCode, exceptionReturn)
+		return
 	} else {
 		c.JSON(200, returnedUser.Payload())
 	}
@@ -94,6 +96,7 @@ func (rc *AuthController) Delete(c *gin.Context) {
 
 	if er.Message != "" {
 		c.JSON(er.StatusCode, er)
+		return
 	} else {
 		c.JSON(200, mr)
 	}
@@ -114,6 +117,7 @@ func (rc *AuthController) CheckToken(c *gin.Context) {
 	if err != nil {
 		re.Valid = false
 		c.AbortWithStatusJSON(400, re)
+		return
 	}
 
 	re.Valid = true

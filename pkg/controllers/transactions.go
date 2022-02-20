@@ -30,8 +30,16 @@ func NewTransactionController(as *services.TransactionService, s *gin.RouterGrou
 	s.GET("", wc.GetAll)
 	s.PUT("/:id", wc.Edit)
 	s.GET("/:id", wc.Get)
-	s.GET("check", wc.Check)
-	s.PUT("/bulk", wc.BulkEdit)
+
+	bulkGroup := s.Group("bulk")
+	{
+		bulkGroup.PUT("", wc.BulkEdit)
+	}
+
+	checkGroup := s.Group("check")
+	{
+		checkGroup.GET("check", wc.Check)
+	}
 
 	return wc
 }
@@ -49,7 +57,11 @@ func (wc *TransactionController) New(c *gin.Context) {
 		return
 	}
 
-	wm := wc.TransactionService.New(c, body)
+	wm, exception := wc.TransactionService.New(c, body)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 	c.JSON(200, wm)
 }
 
@@ -70,7 +82,11 @@ func (wc *TransactionController) GetAll(c *gin.Context) {
 	noPendingQry, _ := c.GetQuery("noPending")
 	noPending := noPendingQry != ""
 
-	wc.TransactionService.GetAll(c, body, wallet, fr, noPending)
+	exception := wc.TransactionService.GetAll(c, body, wallet, fr, noPending)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 
 	c.JSON(200, fr)
 }
@@ -89,7 +105,11 @@ func (wc *TransactionController) Check(c *gin.Context) {
 	fr := FilteredResponse(c)
 	wallet, _ := c.GetQuery("walletId")
 
-	wc.TransactionService.Check(c, body, wallet, fr)
+	exception := wc.TransactionService.Check(c, body, wallet, fr)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 
 	c.JSON(200, fr)
 }
@@ -109,7 +129,11 @@ func (wc *TransactionController) Edit(c *gin.Context) {
 
 	id := c.Param("id")
 
-	wm := wc.TransactionService.Edit(c, body, id)
+	wm, exception := wc.TransactionService.Edit(c, body, id)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 	c.JSON(200, wm)
 }
 
@@ -126,7 +150,11 @@ func (wc *TransactionController) BulkEdit(c *gin.Context) {
 		return
 	}
 
-	wm := wc.TransactionService.BulkEdit(c, body)
+	wm, exception := wc.TransactionService.BulkEdit(c, body)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 	c.JSON(200, wm)
 }
 
@@ -148,7 +176,11 @@ func (wc *TransactionController) Get(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 	params.Embed = embed
 
-	fr := wc.TransactionService.Get(c, body, id, params)
+	fr, exception := wc.TransactionService.Get(c, body, id, params)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 
 	c.JSON(200, fr)
 }

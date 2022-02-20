@@ -45,7 +45,11 @@ func (wc *TransactionTypeController) New(c *gin.Context) {
 		return
 	}
 
-	wm := wc.TransactionTypeService.New(c, body)
+	wm, exception := wc.TransactionTypeService.New(c, body)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 	c.JSON(200, wm)
 }
 
@@ -58,7 +62,11 @@ GetAll
 func (wc *TransactionTypeController) GetAll(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 
-	wm := wc.TransactionTypeService.GetAll(c, embed)
+	wm, exception := wc.TransactionTypeService.GetAll(c, embed)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 
 	c.JSON(200, wm)
 }

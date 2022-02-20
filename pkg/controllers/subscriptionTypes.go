@@ -45,7 +45,11 @@ func (wc *SubscriptionTypeController) New(c *gin.Context) {
 		return
 	}
 
-	wm := wc.SubscriptionTypeService.New(c, body)
+	wm, exception := wc.SubscriptionTypeService.New(c, body)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 	c.JSON(200, wm)
 }
 
@@ -58,7 +62,10 @@ GetAll
 func (wc *SubscriptionTypeController) GetAll(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 
-	wm := wc.SubscriptionTypeService.GetAll(c, embed)
-
+	wm, exception := wc.SubscriptionTypeService.GetAll(c, embed)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 	c.JSON(200, wm)
 }

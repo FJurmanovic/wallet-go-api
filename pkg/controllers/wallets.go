@@ -51,7 +51,11 @@ func (wc *WalletsController) New(c *gin.Context) {
 	get := c.MustGet("auth")
 	body.UserID = get.(*models.Auth).Id
 
-	wm := wc.WalletService.New(c, body)
+	wm, exception := wc.WalletService.New(c, body)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 	c.JSON(200, wm)
 }
 
@@ -68,7 +72,11 @@ func (wc *WalletsController) GetAll(c *gin.Context) {
 
 	fr := FilteredResponse(c)
 
-	wc.WalletService.GetAll(c, body, fr)
+	exception := wc.WalletService.GetAll(c, body, fr)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 
 	c.JSON(200, fr)
 }
@@ -88,7 +96,11 @@ func (wc *WalletsController) Edit(c *gin.Context) {
 
 	id := c.Param("id")
 
-	wm := wc.WalletService.Edit(c, body, id)
+	wm, exception := wc.WalletService.Edit(c, body, id)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 	c.JSON(200, wm)
 }
 
@@ -106,7 +118,11 @@ func (wc *WalletsController) Get(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 	params.Embed = embed
 
-	fr := wc.WalletService.Get(c, id, params)
+	fr, exception := wc.WalletService.Get(c, id, params)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 
 	c.JSON(200, fr)
 }

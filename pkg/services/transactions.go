@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"time"
 	"wallet-api/pkg/models"
@@ -24,9 +25,11 @@ Inserts
 		*models.NewTransactionBody: Transaction body object
 	Returns:
 		*models.Transaction: Transaction object
+		*models.Exception: Exception payload.
 */
-func (as *TransactionService) New(ctx context.Context, body *models.NewTransactionBody) *models.Transaction {
+func (as *TransactionService) New(ctx context.Context, body *models.NewTransactionBody) (*models.Transaction, *models.Exception) {
 	db := as.Db.WithContext(ctx)
+	exceptionReturn := new(models.Exception)
 
 	tm := new(models.Transaction)
 	transactionStatus := new(models.TransactionStatus)
@@ -34,7 +37,13 @@ func (as *TransactionService) New(ctx context.Context, body *models.NewTransacti
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 
-	tx.Model(transactionStatus).Where("? = ?", pg.Ident("status"), "completed").Select()
+	err := tx.Model(transactionStatus).Where("? = ?", pg.Ident("status"), "completed").Select()
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400115"
+		exceptionReturn.Message = fmt.Sprintf("Error selecting row in \"transactionsStatus\" table: %s", err)
+		return nil, exceptionReturn
+	}
 
 	amount, _ := body.Amount.Float64()
 
@@ -50,10 +59,16 @@ func (as *TransactionService) New(ctx context.Context, body *models.NewTransacti
 		tm.TransactionDate = time.Now()
 	}
 
-	tx.Model(tm).Insert()
+	_, err = tx.Model(tm).Insert()
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400116"
+		exceptionReturn.Message = fmt.Sprintf("Error inserting row in \"transaction\" table: %s", err)
+		return nil, exceptionReturn
+	}
 	tx.Commit()
 
-	return tm
+	return tm, nil
 }
 
 /*
@@ -64,19 +79,26 @@ Gets all rows from subscription type table.
 		context.Context: Application context
 		string: Relations to embed
 	Returns:
-		*[]models.SubscriptionType: List of subscription type objects.
+		*models.Exception: Exception payload.
 */
 // Gets filtered rows from transaction table.
-func (as *TransactionService) GetAll(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse, noPending bool) {
+func (as *TransactionService) GetAll(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse, noPending bool) *models.Exception {
 	db := as.Db.WithContext(ctx)
 
+	exceptionReturn := new(models.Exception)
 	wm := new([]models.Transaction)
 	transactionStatus := new(models.TransactionStatus)
 
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 
-	tx.Model(transactionStatus).Where("? = ?", pg.Ident("status"), "completed").Select()
+	err := tx.Model(transactionStatus).Where("? = ?", pg.Ident("status"), "completed").Select()
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400117"
+		exceptionReturn.Message = fmt.Sprintf("Error selecting row in \"transactionStatus\" table: %s", err)
+		return exceptionReturn
+	}
 
 	query := tx.Model(wm).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)
 	if walletId != "" {
@@ -86,9 +108,16 @@ func (as *TransactionService) GetAll(ctx context.Context, am *models.Auth, walle
 		query = query.Where("? = ?", pg.Ident("transaction_status_id"), transactionStatus.Id)
 	}
 
-	FilteredResponse(query, wm, filtered)
+	err = FilteredResponse(query, wm, filtered)
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400118"
+		exceptionReturn.Message = fmt.Sprintf("Error selecting row(s) in \"transaction\" table: %s", err)
+		return exceptionReturn
+	}
 
 	tx.Commit()
+	return nil
 }
 
 /*
@@ -99,20 +128,27 @@ Checks subscriptions and create transacitons.
 		context.Context: Application context
 		string: Relations to embed
 	Returns:
-		*[]models.SubscriptionType: List of subscription type objects.
+		*models.Exception: Exception payload.
 */
 // Gets filtered rows from transaction table.
-func (as *TransactionService) Check(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse) {
+func (as *TransactionService) Check(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse) *models.Exception {
 	db := as.Db.WithContext(ctx)
 
 	wm := new([]models.Transaction)
 	sm := new([]models.Subscription)
 	transactionStatus := new(models.TransactionStatus)
+	exceptionReturn := new(models.Exception)
 
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 
-	tx.Model(transactionStatus).Where("? = ?", pg.Ident("status"), "pending").Select()
+	err := tx.Model(transactionStatus).Where("? = ?", pg.Ident("status"), "pending").Select()
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400119"
+		exceptionReturn.Message = fmt.Sprintf("Error selecting row in \"transactionStatus\" table: %s", err)
+		return exceptionReturn
+	}
 	query2 := tx.Model(sm).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id)
 	if walletId != "" {
 		query2 = query2.Where("? = ?", pg.Ident("wallet_id"), walletId)
@@ -131,9 +167,16 @@ func (as *TransactionService) Check(ctx context.Context, am *models.Auth, wallet
 	}
 	query = query.Where("? = ?", pg.Ident("transaction_status_id"), transactionStatus.Id)
 
-	FilteredResponse(query, wm, filtered)
+	err = FilteredResponse(query, wm, filtered)
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400120"
+		exceptionReturn.Message = fmt.Sprintf("Error selecting row in \"transaction\" table: %s", err)
+		return exceptionReturn
+	}
 
 	tx.Commit()
+	return nil
 }
 
 /*
@@ -146,11 +189,14 @@ Updates row in transaction table by id.
 		string: id to search
 	Returns:
 		*models.Transaction: Transaction object from database.
+		*models.Exception: Exception payload.
 */
-func (as *TransactionService) Edit(ctx context.Context, body *models.TransactionEdit, id string) *models.Transaction {
+func (as *TransactionService) Edit(ctx context.Context, body *models.TransactionEdit, id string) (*models.Transaction, *models.Exception) {
 	db := as.Db.WithContext(ctx)
 
 	amount, _ := body.Amount.Float64()
+
+	exceptionReturn := new(models.Exception)
 
 	tm := new(models.Transaction)
 	tm.Id = id
@@ -164,11 +210,26 @@ func (as *TransactionService) Edit(ctx context.Context, body *models.Transaction
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 
-	tx.Model(tm).WherePK().UpdateNotZero()
+	_, err := tx.Model(tm).WherePK().UpdateNotZero()
+
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400107"
+		exceptionReturn.Message = fmt.Sprintf("Error updating row in \"transaction\" table: %s", err)
+		return nil, exceptionReturn
+	}
+
+	err = tx.Model(tm).WherePK().Select()
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400108"
+		exceptionReturn.Message = fmt.Sprintf("Error selecting row in \"transaction\" table: %s", err)
+		return nil, exceptionReturn
+	}
 
 	tx.Commit()
 
-	return tm
+	return tm, nil
 }
 
 /*
@@ -181,13 +242,15 @@ Updates row in transaction table by id.
 		string: id to search
 	Returns:
 		*models.Transaction: Transaction object from database.
+		*models.Exception: Exception payload.
 */
-func (as *TransactionService) BulkEdit(ctx context.Context, body *[]models.TransactionEdit) *[]models.Transaction {
+func (as *TransactionService) BulkEdit(ctx context.Context, body *[]models.TransactionEdit) (*[]models.Transaction, *models.Exception) {
 	db := as.Db.WithContext(ctx)
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 
 	transactions := new([]models.Transaction)
+	exceptionReturn := new(models.Exception)
 
 	for _, transaction := range *body {
 
@@ -201,13 +264,20 @@ func (as *TransactionService) BulkEdit(ctx context.Context, body *[]models.Trans
 		tm.TransactionDate = transaction.TransactionDate
 		tm.Amount = float32(math.Round(amount*100) / 100)
 
-		tx.Model(tm).WherePK().UpdateNotZero()
 		*transactions = append(*transactions, *tm)
+	}
+
+	_, err := tx.Model(transactions).WherePK().UpdateNotZero()
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400121"
+		exceptionReturn.Message = fmt.Sprintf("Error updating rows in \"transactions\" table: %s", err)
+		return nil, exceptionReturn
 	}
 
 	tx.Commit()
 
-	return transactions
+	return transactions, nil
 }
 
 /*
@@ -221,10 +291,12 @@ Gets row from transaction table by id.
 		*model.Params: url query parameters
 	Returns:
 		*models.Transaction: Transaction object from database.
+		*models.Exception: Exception payload.
 */
-func (as *TransactionService) Get(ctx context.Context, am *models.Auth, id string, params *models.Params) *models.Transaction {
+func (as *TransactionService) Get(ctx context.Context, am *models.Auth, id string, params *models.Params) (*models.Transaction, *models.Exception) {
 	db := as.Db.WithContext(ctx)
 
+	exceptionReturn := new(models.Exception)
 	wm := new(models.Transaction)
 	wm.Id = id
 
@@ -232,9 +304,15 @@ func (as *TransactionService) Get(ctx context.Context, am *models.Auth, id strin
 	defer tx.Rollback()
 
 	qry := tx.Model(wm)
-	common.GenerateEmbed(qry, params.Embed).WherePK().Select()
+	err := common.GenerateEmbed(qry, params.Embed).WherePK().Select()
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400122"
+		exceptionReturn.Message = fmt.Sprintf("Error selecting row in \"transactions\" table: %s", err)
+		return nil, exceptionReturn
+	}
 
 	tx.Commit()
 
-	return wm
+	return wm, nil
 }

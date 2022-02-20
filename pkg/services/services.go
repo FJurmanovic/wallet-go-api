@@ -16,7 +16,7 @@ Adds filters to query and executes it.
 		interface{}: model to be mapped from query execution.
 		*models.FilteredResponse: filter options.
 */
-func FilteredResponse(qry *pg.Query, mdl interface{}, filtered *models.FilteredResponse) {
+func FilteredResponse(qry *pg.Query, mdl interface{}, filtered *models.FilteredResponse) error {
 	if filtered.Page == 0 {
 		filtered.Page = 1
 	}
@@ -33,4 +33,6 @@ func FilteredResponse(qry *pg.Query, mdl interface{}, filtered *models.FilteredR
 
 	filtered.TotalRecords = count
 	filtered.Items = mdl
+
+	return err
 }

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"time"
 	"wallet-api/pkg/models"
@@ -23,11 +24,13 @@ Inserts new row to subscription table.
 		*models.NewSubscriptionBody: Request body
 	Returns:
 		*models.Subscription: Created Subscription row object from database.
+		*models.Exception: Exception payload.
 */
-func (as *SubscriptionService) New(ctx context.Context, body *models.NewSubscriptionBody) *models.Subscription {
+func (as *SubscriptionService) New(ctx context.Context, body *models.NewSubscriptionBody) (*models.Subscription, *models.Exception) {
 	db := as.Db.WithContext(ctx)
 
 	tm := new(models.Subscription)
+	exceptionReturn := new(models.Exception)
 
 	amount, _ := body.Amount.Float64()
 	customRange, _ := body.CustomRange.Int64()
@@ -50,10 +53,16 @@ func (as *SubscriptionService) New(ctx context.Context, body *models.NewSubscrip
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 
-	tx.Model(tm).Insert()
+	_, err := tx.Model(tm).Insert()
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400109"
+		exceptionReturn.Message = fmt.Sprintf("Error inserting row in \"subscription\" table: %s", err)
+		return nil, exceptionReturn
+	}
 	tx.Commit()
 
-	return tm
+	return tm, nil
 }
 
 /*
@@ -67,10 +76,12 @@ Gets row from subscription table by id.
 		params: *models.Params
 	Returns:
 		*models.Subscription: Subscription row object from database.
+		*models.Exception: Exception payload.
 */
-func (as *SubscriptionService) Get(ctx context.Context, am *models.Auth, id string, params *models.Params) *models.Subscription {
+func (as *SubscriptionService) Get(ctx context.Context, am *models.Auth, id string, params *models.Params) (*models.Subscription, *models.Exception) {
 	db := as.Db.WithContext(ctx)
 
+	exceptionReturn := new(models.Exception)
 	wm := new(models.Subscription)
 	wm.Id = id
 
@@ -78,11 +89,17 @@ func (as *SubscriptionService) Get(ctx context.Context, am *models.Auth, id stri
 	defer tx.Rollback()
 
 	qry := tx.Model(wm)
-	common.GenerateEmbed(qry, params.Embed).WherePK().Select()
+	err := common.GenerateEmbed(qry, params.Embed).WherePK().Select()
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400129"
+		exceptionReturn.Message = fmt.Sprintf("Error inserting row in \"subscription\" table: %s", err)
+		return nil, exceptionReturn
+	}
 
 	tx.Commit()
 
-	return wm
+	return wm, nil
 }
 
 /*
@@ -94,11 +111,14 @@ Gets filtered rows from subscription table.
 		*models.Auth: Authentication object
 		string: Wallet id to search
 		*models.FilteredResponse: filter options
+	Returns:
+		*models.Exception: Exception payload.
 */
-func (as *SubscriptionService) GetAll(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse) {
+func (as *SubscriptionService) GetAll(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse) *models.Exception {
 	db := as.Db.WithContext(ctx)
 
 	wm := new([]models.Subscription)
+	exceptionReturn := new(models.Exception)
 
 	tx, _ := db.Begin()
 	defer tx.Rollback()
@@ -108,8 +128,16 @@ func (as *SubscriptionService) GetAll(ctx context.Context, am *models.Auth, wall
 		query = query.Where("? = ?", pg.Ident("wallet_id"), walletId)
 	}
 
-	FilteredResponse(query, wm, filtered)
+	err := FilteredResponse(query, wm, filtered)
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400110"
+		exceptionReturn.Message = fmt.Sprintf("Error selecting row in \"subscription\" table: %s", err)
+		return exceptionReturn
+	}
 	tx.Commit()
+
+	return nil
 }
 
 /*
@@ -122,11 +150,13 @@ Updates row from subscription table by id.
 		string: id to search
 	Returns:
 		*models.Subscription: Edited Subscription row object from database.
+		*models.Exception: Exception payload.
 */
-func (as *SubscriptionService) Edit(ctx context.Context, body *models.SubscriptionEdit, id string) *models.Subscription {
+func (as *SubscriptionService) Edit(ctx context.Context, body *models.SubscriptionEdit, id string) (*models.Subscription, *models.Exception) {
 	db := as.Db.WithContext(ctx)
 
 	amount, _ := body.Amount.Float64()
+	exceptionReturn := new(models.Exception)
 
 	tm := new(models.Subscription)
 	tm.Id = id
@@ -139,11 +169,17 @@ func (as *SubscriptionService) Edit(ctx context.Context, body *models.Subscripti
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 
-	tx.Model(tm).WherePK().UpdateNotZero()
+	_, err := tx.Model(tm).WherePK().UpdateNotZero()
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400111"
+		exceptionReturn.Message = fmt.Sprintf("Error updating row in \"subscription\" table: %s", err)
+		return nil, exceptionReturn
+	}
 
 	tx.Commit()
 
-	return tm
+	return tm, nil
 }
 
 /*
@@ -157,9 +193,11 @@ Ends subscription with current date.
 		string: id to search
 	Returns:
 		*models.Subscription: Created Subscription row object from database.
+		*models.Exception: Exception payload.
 */
-func (as *SubscriptionService) End(ctx context.Context, id string) *models.Subscription {
+func (as *SubscriptionService) End(ctx context.Context, id string) (*models.Subscription, *models.Exception) {
 	db := as.Db.WithContext(ctx)
+	exceptionReturn := new(models.Exception)
 
 	tm := new(models.Subscription)
 	tm.Id = id
@@ -169,11 +207,17 @@ func (as *SubscriptionService) End(ctx context.Context, id string) *models.Subsc
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 
-	tx.Model(tm).WherePK().UpdateNotZero()
+	_, err := tx.Model(tm).WherePK().UpdateNotZero()
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400112"
+		exceptionReturn.Message = fmt.Sprintf("Error updating row in \"subscription\" table: %s", err)
+		return nil, exceptionReturn
+	}
 
 	tx.Commit()
 
-	return tm
+	return tm, nil
 }
 
 /*
@@ -183,8 +227,11 @@ Generates and Inserts new Transaction rows from the subscription model.
    	Args:
 		*models.Subscription: Subscription model to generate new transactions from
 		*pg.Tx: Postgres query context
+	Returns:
+		*models.Exception: Exception payload.
 */
-func (as *SubscriptionService) SubToTrans(subModel *models.Subscription, tx *pg.Tx) {
+func (as *SubscriptionService) SubToTrans(subModel *models.Subscription, tx *pg.Tx) *models.Exception {
+	exceptionReturn := new(models.Exception)
 
 	now := time.Now()
 
@@ -228,12 +275,20 @@ func (as *SubscriptionService) SubToTrans(subModel *models.Subscription, tx *pg.
 		}
 	}
 
+	var err error
 	if len(*transactions) > 0 {
 		for _, trans := range *transactions {
-			_, err := tx.Model(&trans).Where("? = ?", pg.Ident("transaction_date"), trans.TransactionDate).Where("? = ?", pg.Ident("subscription_id"), trans.SubscriptionID).OnConflict("DO NOTHING").SelectOrInsert()
+			_, err = tx.Model(&trans).Where("? = ?", pg.Ident("transaction_date"), trans.TransactionDate).Where("? = ?", pg.Ident("subscription_id"), trans.SubscriptionID).OnConflict("DO NOTHING").SelectOrInsert()
 			if err != nil {
-				tx.Model(subModel).Set("? = ?", pg.Ident("last_transaction_date"), trans.TransactionDate).WherePK().Update()
+				_, err = tx.Model(subModel).Set("? = ?", pg.Ident("last_transaction_date"), trans.TransactionDate).WherePK().Update()
 			}
 		}
 	}
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400113"
+		exceptionReturn.Message = fmt.Sprintf("Error updating row in \"subscription\" table: %s", err)
+		return exceptionReturn
+	}
+	return nil
 }

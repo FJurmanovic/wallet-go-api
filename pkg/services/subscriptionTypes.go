@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"fmt"
 	"wallet-api/pkg/models"
 	"wallet-api/pkg/utl/common"
 
@@ -21,19 +22,27 @@ Inserts new row to subscription type table.
 		*models.NewSubscriptionTypeBody: Values to create new row
 	Returns:
 		*models.SubscriptionType: Created row from database.
+		*models.Exception: Exception payload.
 */
-func (as *SubscriptionTypeService) New(ctx context.Context, body *models.NewSubscriptionTypeBody) *models.SubscriptionType {
+func (as *SubscriptionTypeService) New(ctx context.Context, body *models.NewSubscriptionTypeBody) (*models.SubscriptionType, *models.Exception) {
 	db := as.Db.WithContext(ctx)
 
 	tm := new(models.SubscriptionType)
+	exceptionReturn := new(models.Exception)
 
 	tm.Init()
 	tm.Name = body.Name
 	tm.Type = body.Type
 
-	db.Model(tm).Insert()
+	_, err := db.Model(tm).Insert()
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400114"
+		exceptionReturn.Message = fmt.Sprintf("Error inserting row in \"subscriptionTypes\" table: %s", err)
+		return nil, exceptionReturn
+	}
 
-	return tm
+	return tm, nil
 }
 
 /*
@@ -45,14 +54,22 @@ Gets all rows from subscription type table.
 		string: Relations to embed
 	Returns:
 		*[]models.SubscriptionType: List of subscription type objects.
+		*models.Exception: Exception payload.
 */
-func (as *SubscriptionTypeService) GetAll(ctx context.Context, embed string) *[]models.SubscriptionType {
+func (as *SubscriptionTypeService) GetAll(ctx context.Context, embed string) (*[]models.SubscriptionType, *models.Exception) {
 	db := as.Db.WithContext(ctx)
 
 	wm := new([]models.SubscriptionType)
+	exceptionReturn := new(models.Exception)
 
 	query := db.Model(wm)
-	common.GenerateEmbed(query, embed).Select()
+	err := common.GenerateEmbed(query, embed).Select()
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400135"
+		exceptionReturn.Message = fmt.Sprintf("Error selecting rows in \"subscriptionTypes\" table: %s", err)
+		return nil, exceptionReturn
+	}
 
-	return wm
+	return wm, nil
 }

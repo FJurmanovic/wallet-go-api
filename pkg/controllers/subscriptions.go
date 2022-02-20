@@ -52,7 +52,13 @@ func (wc *SubscriptionController) New(c *gin.Context) {
 		return
 	}
 
-	wm := wc.SubscriptionService.New(c, body)
+	wm, exception := wc.SubscriptionService.New(c, body)
+
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
+
 	c.JSON(200, wm)
 }
 
@@ -71,7 +77,11 @@ func (wc *SubscriptionController) Edit(c *gin.Context) {
 
 	id := c.Param("id")
 
-	wm := wc.SubscriptionService.Edit(c, body, id)
+	wm, exception := wc.SubscriptionService.Edit(c, body, id)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 	c.JSON(200, wm)
 }
 
@@ -93,7 +103,11 @@ func (wc *SubscriptionController) Get(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 	params.Embed = embed
 
-	fr := wc.SubscriptionService.Get(c, body, id, params)
+	fr, exception := wc.SubscriptionService.Get(c, body, id, params)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 
 	c.JSON(200, fr)
 }
@@ -113,7 +127,11 @@ func (wc *SubscriptionController) End(c *gin.Context) {
 
 	id := c.Param("id")
 
-	fr := wc.SubscriptionService.End(c, id)
+	fr, exception := wc.SubscriptionService.End(c, id)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 
 	c.JSON(200, fr)
 }
@@ -132,7 +150,11 @@ func (wc *SubscriptionController) GetAll(c *gin.Context) {
 	fr := FilteredResponse(c)
 	wallet, _ := c.GetQuery("walletId")
 
-	wc.SubscriptionService.GetAll(c, body, wallet, fr)
+	exception := wc.SubscriptionService.GetAll(c, body, wallet, fr)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 
 	c.JSON(200, fr)
 }

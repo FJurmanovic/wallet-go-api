@@ -44,7 +44,11 @@ func (wc *WalletsHeaderController) Get(c *gin.Context) {
 	auth := c.MustGet("auth")
 	body.Id = auth.(*models.Auth).Id
 
-	wm := wc.WalletService.GetHeader(c, body, walletId)
+	wm, exception := wc.WalletService.GetHeader(c, body, walletId)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 
 	c.JSON(200, wm)
 }

@@ -45,7 +45,11 @@ func (wc *TransactionStatusController) New(c *gin.Context) {
 		return
 	}
 
-	wm := wc.TransactionStatusService.New(c, body)
+	wm, exception := wc.TransactionStatusService.New(c, body)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 	c.JSON(200, wm)
 }
 
@@ -58,7 +62,11 @@ GetAll
 func (wc *TransactionStatusController) GetAll(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 
-	wm := wc.TransactionStatusService.GetAll(c, embed)
+	wm, exception := wc.TransactionStatusService.GetAll(c, embed)
+	if exception != nil {
+		c.JSON(exception.StatusCode, exception)
+		return
+	}
 
 	c.JSON(200, wm)
 }
