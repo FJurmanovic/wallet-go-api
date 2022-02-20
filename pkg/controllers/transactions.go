@@ -38,7 +38,7 @@ func NewTransactionController(as *services.TransactionService, s *gin.RouterGrou
 
 	checkGroup := s.Group("check")
 	{
-		checkGroup.GET("check", wc.Check)
+		checkGroup.GET("", wc.Check)
 	}
 
 	return wc
