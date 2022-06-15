@@ -18,7 +18,6 @@ type UsersService struct {
 	Db *pg.DB
 }
 
-
 /*
 Create
 
@@ -82,7 +81,11 @@ func (us *UsersService) Login(ctx context.Context, loginBody *models.Login) (*mo
 	exceptionReturn := new(models.Exception)
 	tokenPayload := new(models.Token)
 
-	db.Model(check).Where("? = ?", pg.Ident("email"), loginBody.Email).Select()
+	tx, _ := db.Begin()
+	defer tx.Rollback()
+
+	tx.Model(check).Where("? = ?", pg.Ident("email"), loginBody.Email).Select()
+
 	if check.Email == "" {
 		exceptionReturn.Message = "Email not found"
 		exceptionReturn.ErrorCode = "400103"
@@ -108,6 +111,8 @@ func (us *UsersService) Login(ctx context.Context, loginBody *models.Login) (*mo
 	common.CheckError(err)
 
 	tokenPayload.Token = token
+
+	tx.Commit()
 
 	return tokenPayload, exceptionReturn
 }

@@ -1,0 +1,28 @@
+Query: 2022/06/15 18:36:12 db.go:24: [83 69 76 69 67 84 32 34 117 115 101 114 115 34 46 34 105 100 34 44 32 34 117 115 101 114 115 34 46 34 100 97 116 101 95 99 114 101 97 116 101 100 34 44 32 34 117 115 101 114 115 34 46 34 100 97 116 101 95 117 112 100 97 116 101 100 34 44 32 34 117 115 101 114 115 34 46 34 105 115 95 97 99 116 105 118 101 34 44 32 34 117 115 101 114 115 34 46 34 117 115 101 114 110 97 109 101 34 44 32 34 117 115 101 114 115 34 46 34 112 97 115 115 119 111 114 100 34 44 32 34 117 115 101 114 115 34 46 34 101 109 97 105 108 34 32 70 82 79 77 32 34 117 115 101 114 115 34 32 65 83 32 34 117 115 101 114 115 34 32 87 72 69 82 69 32 40 34 101 109 97 105 108 34 32 61 32 39 39 41] <nil>
+Query: 2022/06/15 18:36:20 db.go:24: [66 69 71 73 78] <nil>
+Query: 2022/06/15 18:36:20 db.go:24: [83 69 76 69 67 84 32 34 117 115 101 114 115 34 46 34 105 100 34 44 32 34 117 115 101 114 115 34 46 34 100 97 116 101 95 99 114 101 97 116 101 100 34 44 32 34 117 115 101 114 115 34 46 34 100 97 116 101 95 117 112 100 97 116 101 100 34 44 32 34 117 115 101 114 115 34 46 34 105 115 95 97 99 116 105 118 101 34 44 32 34 117 115 101 114 115 34 46 34 117 115 101 114 110 97 109 101 34 44 32 34 117 115 101 114 115 34 46 34 112 97 115 115 119 111 114 100 34 44 32 34 117 115 101 114 115 34 46 34 101 109 97 105 108 34 32 70 82 79 77 32 34 117 115 101 114 115 34 32 65 83 32 34 117 115 101 114 115 34 32 87 72 69 82 69 32 40 34 117 115 101 114 110 97 109 101 34 32 61 32 39 121 117 114 109 97 39 41 32 79 82 32 40 34 101 109 97 105 108 34 32 61 32 39 39 41] <nil>
+Query: 2022/06/15 18:36:20 db.go:22: ERROR #23502 null value in column "email" of relation "users" violates not-null constraint
+Query: 2022/06/15 18:36:20 db.go:24: [67 79 77 77 73 84] <nil>
+Query: 2022/06/15 18:36:20 db.go:22: pg: transaction has already been committed or rolled back
+Query: 2022/06/15 18:37:07 db.go:24: [66 69 71 73 78] <nil>
+Query: 2022/06/15 18:38:44 db.go:28: BEGIN
+Query: 2022/06/15 18:38:44 db.go:28: SELECT "users"."id", "users"."date_created", "users"."date_updated", "users"."is_active", "users"."username", "users"."password", "users"."email" FROM "users" AS "users" WHERE ("username" = 'fjurma12@gmail.com') OR ("email" = '')
+Query: 2022/06/15 18:38:44 db.go:22: ERROR #23502 null value in column "email" of relation "users" violates not-null constraint
+Query: 2022/06/15 18:38:44 db.go:28: COMMIT
+Query: 2022/06/15 18:38:44 db.go:22: pg: transaction has already been committed or rolled back
+Query: 2022/06/15 18:38:49 db.go:28: BEGIN
+Query: 2022/06/15 18:38:49 db.go:28: SELECT "users"."id", "users"."date_created", "users"."date_updated", "users"."is_active", "users"."username", "users"."password", "users"."email" FROM "users" AS "users" WHERE ("username" = '') OR ("email" = 'fjurma12@gmail.com')
+Query: 2022/06/15 18:38:49 db.go:22: ERROR #23502 null value in column "username" of relation "users" violates not-null constraint
+Query: 2022/06/15 18:38:49 db.go:28: COMMIT
+Query: 2022/06/15 18:38:49 db.go:22: pg: transaction has already been committed or rolled back
+Query: 2022/06/15 18:39:31 db.go:28: BEGIN
+Query: 2022/06/15 18:39:31 db.go:28: SELECT "users"."id", "users"."date_created", "users"."date_updated", "users"."is_active", "users"."username", "users"."password", "users"."email" FROM "users" AS "users" WHERE ("username" = 'yurma') OR ("email" = 'fjurma12@gmail.com')
+Query: 2022/06/15 18:39:31 db.go:28: INSERT INTO "users" ("id", "date_created", "date_updated", "is_active", "username", "password", "email") VALUES ('b2c8bb5e-fcb7-4e91-9c20-2441dd6a1422', '2022-06-15 16:39:31.6930018+00:00:00', '2022-06-15 16:39:31.6930018+00:00:00', TRUE, 'yurma', '$2a$10$Uf/PlQtyt6J671sdvDskm.6m5OTgMUPNQlaqyG8rUQamGnR3Zi2Z.', 'fjurma12@gmail.com')
+Query: 2022/06/15 18:39:31 db.go:28: COMMIT
+Query: 2022/06/15 18:39:31 db.go:22: pg: transaction has already been committed or rolled back
+Query: 2022/06/15 18:40:26 db.go:28: SELECT "users"."id", "users"."date_created", "users"."date_updated", "users"."is_active", "users"."username", "users"."password", "users"."email" FROM "users" AS "users" WHERE ("email" = '')
+Query: 2022/06/15 18:40:36 db.go:28: SELECT "users"."id", "users"."date_created", "users"."date_updated", "users"."is_active", "users"."username", "users"."password", "users"."email" FROM "users" AS "users" WHERE ("email" = 'fjurma12@gmail.com')
+Query: 2022/06/15 18:42:30 db.go:28: BEGIN
+Query: 2022/06/15 18:42:30 db.go:28: SELECT "users"."id", "users"."date_created", "users"."date_updated", "users"."is_active", "users"."username", "users"."password", "users"."email" FROM "users" AS "users" WHERE ("email" = 'fjurma12@gmail.com')
+Query: 2022/06/15 18:42:30 db.go:28: COMMIT
+Query: 2022/06/15 18:42:30 db.go:22: pg: transaction has already been committed or rolled back
