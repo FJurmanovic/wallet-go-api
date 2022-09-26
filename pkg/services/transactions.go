@@ -12,23 +12,31 @@ import (
 )
 
 type TransactionService struct {
-	Db *pg.DB
-	Ss *SubscriptionService
+	db                  *pg.DB
+	subscriptionService *SubscriptionService
+}
+
+func NewTransactionService(db *pg.DB, ss *SubscriptionService) *TransactionService {
+	return &TransactionService{
+		db:                  db,
+		subscriptionService: ss,
+	}
 }
 
 /*
-New new row into transaction table
+New row into transaction table
 
 Inserts
-   	Args:
-		context.Context: Application context
-		*models.NewTransactionBody: Transaction body object
-	Returns:
-		*models.Transaction: Transaction object
-		*models.Exception: Exception payload.
+
+	   	Args:
+			context.Context: Application context
+			*models.NewTransactionBody: Transaction body object
+		Returns:
+			*models.Transaction: Transaction object
+			*models.Exception: Exception payload.
 */
 func (as *TransactionService) New(ctx context.Context, body *models.NewTransactionBody) (*models.Transaction, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 	exceptionReturn := new(models.Exception)
 
 	tm := new(models.Transaction)
@@ -83,7 +91,7 @@ Gets all rows from subscription type table.
 */
 // Gets filtered rows from transaction table.
 func (as *TransactionService) GetAll(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse, noPending bool) *models.Exception {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	exceptionReturn := new(models.Exception)
 	wm := new([]models.Transaction)
@@ -132,7 +140,7 @@ Checks subscriptions and create transacitons.
 */
 // Gets filtered rows from transaction table.
 func (as *TransactionService) Check(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse) *models.Exception {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	wm := new([]models.Transaction)
 	sm := new([]models.Subscription)
@@ -157,7 +165,7 @@ func (as *TransactionService) Check(ctx context.Context, am *models.Auth, wallet
 
 	for _, sub := range *sm {
 		if sub.HasNew() {
-			as.Ss.SubToTrans(&sub, tx)
+			as.subscriptionService.SubToTrans(&sub, tx)
 		}
 	}
 
@@ -183,16 +191,17 @@ func (as *TransactionService) Check(ctx context.Context, am *models.Auth, wallet
 Edit
 
 Updates row in transaction table by id.
-   	Args:
-		context.Context: Application context
-		*models.TransactionEdit: Object to edit
-		string: id to search
-	Returns:
-		*models.Transaction: Transaction object from database.
-		*models.Exception: Exception payload.
+
+	   	Args:
+			context.Context: Application context
+			*models.TransactionEdit: Object to edit
+			string: id to search
+		Returns:
+			*models.Transaction: Transaction object from database.
+			*models.Exception: Exception payload.
 */
 func (as *TransactionService) Edit(ctx context.Context, body *models.TransactionEdit, id string) (*models.Transaction, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	amount, _ := body.Amount.Float64()
 
@@ -236,16 +245,17 @@ func (as *TransactionService) Edit(ctx context.Context, body *models.Transaction
 Bulk Edit
 
 Updates row in transaction table by id.
-   	Args:
-		context.Context: Application context
-		?[]models.Transaction Bulk Edit: Object to edit
-		string: id to search
-	Returns:
-		*models.Transaction: Transaction object from database.
-		*models.Exception: Exception payload.
+
+	   	Args:
+			context.Context: Application context
+			?[]models.Transaction Bulk Edit: Object to edit
+			string: id to search
+		Returns:
+			*models.Transaction: Transaction object from database.
+			*models.Exception: Exception payload.
 */
 func (as *TransactionService) BulkEdit(ctx context.Context, body *[]models.TransactionEdit) (*[]models.Transaction, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 
@@ -284,17 +294,18 @@ func (as *TransactionService) BulkEdit(ctx context.Context, body *[]models.Trans
 Get
 
 Gets row from transaction table by id.
-   	Args:
-		context.Context: Application context
-		*models.Auth: Authentication object
-		string: id to search
-		*model.Params: url query parameters
-	Returns:
-		*models.Transaction: Transaction object from database.
-		*models.Exception: Exception payload.
+
+	   	Args:
+			context.Context: Application context
+			*models.Auth: Authentication object
+			string: id to search
+			*model.Params: url query parameters
+		Returns:
+			*models.Transaction: Transaction object from database.
+			*models.Exception: Exception payload.
 */
 func (as *TransactionService) Get(ctx context.Context, am *models.Auth, id string, params *models.Params) (*models.Transaction, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	exceptionReturn := new(models.Exception)
 	wm := new(models.Transaction)

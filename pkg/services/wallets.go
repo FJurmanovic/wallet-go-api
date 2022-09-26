@@ -11,23 +11,31 @@ import (
 )
 
 type WalletService struct {
-	Db *pg.DB
-	Ss *SubscriptionService
+	db                  *pg.DB
+	subscriptionService *SubscriptionService
+}
+
+func NewWalletService(db *pg.DB, ss *SubscriptionService) *WalletService {
+	return &WalletService{
+		db:                  db,
+		subscriptionService: ss,
+	}
 }
 
 /*
 New
 
 Inserts row to wallets table.
-   	Args:
-		context.Context: Application context
-		*models.NewWalletBody: Object to be inserted
-	Returns:
-		*models.Wallet: Wallet object from database.
-		*models.Exception: Exception payload.
+
+	   	Args:
+			context.Context: Application context
+			*models.NewWalletBody: Object to be inserted
+		Returns:
+			*models.Wallet: Wallet object from database.
+			*models.Exception: Exception payload.
 */
 func (as *WalletService) New(ctx context.Context, am *models.NewWalletBody) (*models.Wallet, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	exceptionReturn := new(models.Exception)
 	walletModel := new(models.Wallet)
@@ -48,16 +56,17 @@ func (as *WalletService) New(ctx context.Context, am *models.NewWalletBody) (*mo
 Edit
 
 Updates row in wallets table by id.
-   	Args:
-		context.Context: Application context
-		*models.WalletEdit: Object to be edited
-		string: id to search
-	Returns:
-		*models.Wallet: Wallet object from database.
-		*models.Exception: Exception payload.
+
+	   	Args:
+			context.Context: Application context
+			*models.WalletEdit: Object to be edited
+			string: id to search
+		Returns:
+			*models.Wallet: Wallet object from database.
+			*models.Exception: Exception payload.
 */
 func (as *WalletService) Edit(ctx context.Context, body *models.WalletEdit, id string) (*models.Wallet, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	exceptionReturn := new(models.Exception)
 	tm := new(models.Wallet)
@@ -84,16 +93,17 @@ func (as *WalletService) Edit(ctx context.Context, body *models.WalletEdit, id s
 Get
 
 Gets row in wallets table by id.
-   	Args:
-		context.Context: Application context
-		string: id to search
-		*models.Params: url query parameters
-	Returns:
-		*models.Wallet: Wallet object from database
-		*models.Exception: Exception payload.
+
+	   	Args:
+			context.Context: Application context
+			string: id to search
+			*models.Params: url query parameters
+		Returns:
+			*models.Wallet: Wallet object from database
+			*models.Exception: Exception payload.
 */
 func (as *WalletService) Get(ctx context.Context, id string, params *models.Params) (*models.Wallet, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 	exceptionReturn := new(models.Exception)
 
 	wm := new(models.Wallet)
@@ -120,16 +130,17 @@ func (as *WalletService) Get(ctx context.Context, id string, params *models.Para
 GetAll
 
 Gets filtered rows from wallets table.
-   	Args:
-		context.Context: Application context
-		*models.Auth: Authentication object
-		*models.FilteredResponse: filter options
-	Returns:
-		*models.Exception: Exception payload.
+
+	   	Args:
+			context.Context: Application context
+			*models.Auth: Authentication object
+			*models.FilteredResponse: filter options
+		Returns:
+			*models.Exception: Exception payload.
 */
 func (as *WalletService) GetAll(ctx context.Context, am *models.Auth, filtered *models.FilteredResponse) *models.Exception {
 	exceptionReturn := new(models.Exception)
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 	wm := new([]models.Wallet)
 
 	query := db.Model(wm).Where("? = ?", pg.Ident("user_id"), am.Id)
@@ -149,16 +160,17 @@ GetHeader
 Gets row from wallets table.
 
 Calculates previous month, current and next month totals.
-   	Args:
-		context.Context: Application context
-		*models.Auth: Authentication object
-		string: wallet id to search
-	Returns:
-		*models.WalletHeader: generated wallet header object
-		*models.Exception: Exception payload.
+
+	   	Args:
+			context.Context: Application context
+			*models.Auth: Authentication object
+			string: wallet id to search
+		Returns:
+			*models.WalletHeader: generated wallet header object
+			*models.Exception: Exception payload.
 */
 func (as *WalletService) GetHeader(ctx context.Context, am *models.Auth, walletId string) (*models.WalletHeader, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	wm := new(models.WalletHeader)
 	wallets := new([]models.WalletTransactions)
@@ -286,12 +298,13 @@ addWhere
 Appends Transaction to the belonging walletId.
 
 If missing, it creates the item list.
-   	Args:
-		*[]models.WalletTransactions: list to append to
-		string: wallet id to check
-		models.Transaction: Transaction to append
-	Returns:
-		*models.Exception: Exception payload.
+
+	   	Args:
+			*[]models.WalletTransactions: list to append to
+			string: wallet id to check
+			models.Transaction: Transaction to append
+		Returns:
+			*models.Exception: Exception payload.
 */
 func addWhere(s *[]models.WalletTransactions, walletId string, e models.Transaction) {
 	var exists bool

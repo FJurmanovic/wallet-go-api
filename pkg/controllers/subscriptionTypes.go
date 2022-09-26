@@ -4,30 +4,33 @@ import (
 	"net/http"
 	"wallet-api/pkg/models"
 	"wallet-api/pkg/services"
+	"wallet-api/pkg/utl/common"
 
 	"github.com/gin-gonic/gin"
 )
 
 type SubscriptionTypeController struct {
-	SubscriptionTypeService *services.SubscriptionTypeService
+	service *services.SubscriptionTypeService
 }
 
 /*
 NewSubscriptionTypeController
 
 Initializes SubscriptionTypeController.
+
 	Args:
 		*services.SubscriptionTypeService: Subscription type service
 		*gin.RouterGroup: Gin Router Group
 	Returns:
 		*SubscriptionTypeController: Controller for "subscription-types" route interactions
 */
-func NewSubscriptionTypeController(as *services.SubscriptionTypeService, s *gin.RouterGroup) *SubscriptionTypeController {
-	wc := new(SubscriptionTypeController)
-	wc.SubscriptionTypeService = as
+func NewSubscriptionTypeController(as *services.SubscriptionTypeService, routeGroups *common.RouteGroups) *SubscriptionTypeController {
+	wc := &SubscriptionTypeController{
+		service: as,
+	}
 
-	s.POST("", wc.New)
-	s.GET("", wc.GetAll)
+	routeGroups.SubscriptionType.POST("", wc.New)
+	routeGroups.SubscriptionType.GET("", wc.GetAll)
 
 	return wc
 }
@@ -45,7 +48,7 @@ func (wc *SubscriptionTypeController) New(c *gin.Context) {
 		return
 	}
 
-	wm, exception := wc.SubscriptionTypeService.New(c, body)
+	wm, exception := wc.service.New(c, body)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -62,7 +65,7 @@ GetAll
 func (wc *SubscriptionTypeController) GetAll(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 
-	wm, exception := wc.SubscriptionTypeService.GetAll(c, embed)
+	wm, exception := wc.service.GetAll(c, embed)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return

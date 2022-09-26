@@ -4,32 +4,35 @@ import (
 	"net/http"
 	"wallet-api/pkg/models"
 	"wallet-api/pkg/services"
+	"wallet-api/pkg/utl/common"
 
 	"github.com/gin-gonic/gin"
 )
 
 type WalletsController struct {
-	WalletService *services.WalletService
+	service *services.WalletService
 }
 
 /*
 NewWalletsController
 
 Initializes WalletsController.
+
 	Args:
 		*services.WalletService: Wallet service
 		*gin.RouterGroup: Gin Router Group
 	Returns:
 		*WalletsController: Controller for "wallet" route interactions
 */
-func NewWalletsController(as *services.WalletService, s *gin.RouterGroup) *WalletsController {
-	wc := new(WalletsController)
-	wc.WalletService = as
+func NewWalletsController(as *services.WalletService, routeGroups *common.RouteGroups) *WalletsController {
+	wc := &WalletsController{
+		service: as,
+	}
 
-	s.POST("", wc.New)
-	s.GET("", wc.GetAll)
-	s.PUT("/:id", wc.Edit)
-	s.GET("/:id", wc.Get)
+	routeGroups.Wallet.POST("", wc.New)
+	routeGroups.Wallet.GET("", wc.GetAll)
+	routeGroups.Wallet.PUT("/:id", wc.Edit)
+	routeGroups.Wallet.GET("/:id", wc.Get)
 
 	return wc
 }
@@ -51,7 +54,7 @@ func (wc *WalletsController) New(c *gin.Context) {
 	get := c.MustGet("auth")
 	body.UserID = get.(*models.Auth).Id
 
-	wm, exception := wc.WalletService.New(c, body)
+	wm, exception := wc.service.New(c, body)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -72,7 +75,7 @@ func (wc *WalletsController) GetAll(c *gin.Context) {
 
 	fr := FilteredResponse(c)
 
-	exception := wc.WalletService.GetAll(c, body, fr)
+	exception := wc.service.GetAll(c, body, fr)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -96,7 +99,7 @@ func (wc *WalletsController) Edit(c *gin.Context) {
 
 	id := c.Param("id")
 
-	wm, exception := wc.WalletService.Edit(c, body, id)
+	wm, exception := wc.service.Edit(c, body, id)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -118,7 +121,7 @@ func (wc *WalletsController) Get(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 	params.Embed = embed
 
-	fr, exception := wc.WalletService.Get(c, id, params)
+	fr, exception := wc.service.Get(c, id, params)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return

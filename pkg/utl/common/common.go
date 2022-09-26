@@ -1,12 +1,25 @@
 package common
 
 import (
+	"github.com/gin-gonic/gin"
 	"log"
 	"net"
 	"os"
 	"regexp"
 	"strings"
 )
+
+type RouteGroups struct {
+	Api               *gin.RouterGroup
+	Auth              *gin.RouterGroup
+	Wallet            *gin.RouterGroup
+	WalletHeader      *gin.RouterGroup
+	Transaction       *gin.RouterGroup
+	TransactionType   *gin.RouterGroup
+	Subscription      *gin.RouterGroup
+	SubscriptionType  *gin.RouterGroup
+	TransactionStatus *gin.RouterGroup
+}
 
 func CheckError(err error) {
 	if err != nil {

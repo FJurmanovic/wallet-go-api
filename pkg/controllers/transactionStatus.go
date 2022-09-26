@@ -4,30 +4,33 @@ import (
 	"net/http"
 	"wallet-api/pkg/models"
 	"wallet-api/pkg/services"
+	"wallet-api/pkg/utl/common"
 
 	"github.com/gin-gonic/gin"
 )
 
 type TransactionStatusController struct {
-	TransactionStatusService *services.TransactionStatusService
+	service *services.TransactionStatusService
 }
 
 /*
 NewTransactionStatusController
 
 Initializes TransactionStatusController.
+
 	Args:
 		*services.TransactionStatusService: Transaction Staus service
 		*gin.RouterGroup: Gin Router Group
 	Returns:
 		*TransactionStatusController: Controller for "transaction-status" route interactions
 */
-func NewTransactionStatusController(as *services.TransactionStatusService, s *gin.RouterGroup) *TransactionStatusController {
-	wc := new(TransactionStatusController)
-	wc.TransactionStatusService = as
+func NewTransactionStatusController(as *services.TransactionStatusService, routeGroups *common.RouteGroups) *TransactionStatusController {
+	wc := &TransactionStatusController{
+		service: as,
+	}
 
-	s.POST("", wc.New)
-	s.GET("", wc.GetAll)
+	routeGroups.TransactionStatus.POST("", wc.New)
+	routeGroups.TransactionStatus.GET("", wc.GetAll)
 
 	return wc
 }
@@ -45,7 +48,7 @@ func (wc *TransactionStatusController) New(c *gin.Context) {
 		return
 	}
 
-	wm, exception := wc.TransactionStatusService.New(c, body)
+	wm, exception := wc.service.New(c, body)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -62,7 +65,7 @@ GetAll
 func (wc *TransactionStatusController) GetAll(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 
-	wm, exception := wc.TransactionStatusService.GetAll(c, embed)
+	wm, exception := wc.service.GetAll(c, embed)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return

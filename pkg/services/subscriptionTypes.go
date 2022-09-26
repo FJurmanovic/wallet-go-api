@@ -10,22 +10,29 @@ import (
 )
 
 type SubscriptionTypeService struct {
-	Db *pg.DB
+	db *pg.DB
+}
+
+func NewSubscriptionTypeService(db *pg.DB) *SubscriptionTypeService {
+	return &SubscriptionTypeService{
+		db: db,
+	}
 }
 
 /*
 New
 
 Inserts new row to subscription type table.
-   	Args:
-		context.Context: Application context
-		*models.NewSubscriptionTypeBody: Values to create new row
-	Returns:
-		*models.SubscriptionType: Created row from database.
-		*models.Exception: Exception payload.
+
+	   	Args:
+			context.Context: Application context
+			*models.NewSubscriptionTypeBody: Values to create new row
+		Returns:
+			*models.SubscriptionType: Created row from database.
+			*models.Exception: Exception payload.
 */
 func (as *SubscriptionTypeService) New(ctx context.Context, body *models.NewSubscriptionTypeBody) (*models.SubscriptionType, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	tm := new(models.SubscriptionType)
 	exceptionReturn := new(models.Exception)
@@ -49,15 +56,16 @@ func (as *SubscriptionTypeService) New(ctx context.Context, body *models.NewSubs
 GetAll
 
 Gets all rows from subscription type table.
-   	Args:
-		context.Context: Application context
-		string: Relations to embed
-	Returns:
-		*[]models.SubscriptionType: List of subscription type objects.
-		*models.Exception: Exception payload.
+
+	   	Args:
+			context.Context: Application context
+			string: Relations to embed
+		Returns:
+			*[]models.SubscriptionType: List of subscription type objects.
+			*models.Exception: Exception payload.
 */
 func (as *SubscriptionTypeService) GetAll(ctx context.Context, embed string) (*[]models.SubscriptionType, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	wm := new([]models.SubscriptionType)
 	exceptionReturn := new(models.Exception)

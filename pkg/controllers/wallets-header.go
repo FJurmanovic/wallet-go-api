@@ -3,29 +3,32 @@ package controllers
 import (
 	"wallet-api/pkg/models"
 	"wallet-api/pkg/services"
+	"wallet-api/pkg/utl/common"
 
 	"github.com/gin-gonic/gin"
 )
 
 type WalletsHeaderController struct {
-	WalletService *services.WalletService
+	service *services.WalletService
 }
 
 /*
 NewWalletsHeaderController
 
 Initializes WalletsHeaderController.
+
 	Args:
 		*services.WalletService: Wallet service
 		*gin.RouterGroup: Gin Router Group
 	Returns:
 		*WalletsHeaderController: Controller for "wallet/wallet-header" route interactions
 */
-func NewWalletsHeaderController(as *services.WalletService, s *gin.RouterGroup) *WalletsHeaderController {
-	wc := new(WalletsHeaderController)
-	wc.WalletService = as
+func NewWalletsHeaderController(as *services.WalletService, routeGroups *common.RouteGroups) *WalletsHeaderController {
+	wc := &WalletsHeaderController{
+		service: as,
+	}
 
-	s.GET("", wc.Get)
+	routeGroups.WalletHeader.GET("", wc.Get)
 
 	return wc
 }
@@ -44,7 +47,7 @@ func (wc *WalletsHeaderController) Get(c *gin.Context) {
 	auth := c.MustGet("auth")
 	body.Id = auth.(*models.Auth).Id
 
-	wm, exception := wc.WalletService.GetHeader(c, body, walletId)
+	wm, exception := wc.service.GetHeader(c, body, walletId)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return

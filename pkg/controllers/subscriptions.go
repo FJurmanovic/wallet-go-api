@@ -4,34 +4,37 @@ import (
 	"net/http"
 	"wallet-api/pkg/models"
 	"wallet-api/pkg/services"
+	"wallet-api/pkg/utl/common"
 
 	"github.com/gin-gonic/gin"
 )
 
 type SubscriptionController struct {
-	SubscriptionService *services.SubscriptionService
+	service *services.SubscriptionService
 }
 
 /*
 NewSubscriptionController
 
 Initializes SubscriptionController.
+
 	Args:
 		*services.SubscriptionService: Subscription service
 		*gin.RouterGroup: Gin Router Group
 	Returns:
 		*SubscriptionController: Controller for "subscription" route interactions
 */
-func NewSubscriptionController(as *services.SubscriptionService, s *gin.RouterGroup) *SubscriptionController {
-	wc := new(SubscriptionController)
-	wc.SubscriptionService = as
+func NewSubscriptionController(as *services.SubscriptionService, routeGroups *common.RouteGroups) *SubscriptionController {
+	wc := &SubscriptionController{
+		service: as,
+	}
 
-	s.POST("", wc.New)
-	s.PUT("/:id", wc.Edit)
-	s.GET("/:id", wc.Get)
-	s.GET("", wc.GetAll)
+	routeGroups.Subscription.POST("", wc.New)
+	routeGroups.Subscription.PUT("/:id", wc.Edit)
+	routeGroups.Subscription.GET("/:id", wc.Get)
+	routeGroups.Subscription.GET("", wc.GetAll)
 
-	se := s.Group("/end")
+	se := routeGroups.Subscription.Group("/end")
 	{
 		se.PUT("/:id", wc.End)
 	}
@@ -52,7 +55,7 @@ func (wc *SubscriptionController) New(c *gin.Context) {
 		return
 	}
 
-	wm, exception := wc.SubscriptionService.New(c, body)
+	wm, exception := wc.service.New(c, body)
 
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
@@ -77,7 +80,7 @@ func (wc *SubscriptionController) Edit(c *gin.Context) {
 
 	id := c.Param("id")
 
-	wm, exception := wc.SubscriptionService.Edit(c, body, id)
+	wm, exception := wc.service.Edit(c, body, id)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -103,7 +106,7 @@ func (wc *SubscriptionController) Get(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 	params.Embed = embed
 
-	fr, exception := wc.SubscriptionService.Get(c, body, id, params)
+	fr, exception := wc.service.Get(c, body, id, params)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -127,7 +130,7 @@ func (wc *SubscriptionController) End(c *gin.Context) {
 
 	id := c.Param("id")
 
-	fr, exception := wc.SubscriptionService.End(c, id)
+	fr, exception := wc.service.End(c, id)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -150,7 +153,7 @@ func (wc *SubscriptionController) GetAll(c *gin.Context) {
 	fr := FilteredResponse(c)
 	wallet, _ := c.GetQuery("walletId")
 
-	exception := wc.SubscriptionService.GetAll(c, body, wallet, fr)
+	exception := wc.service.GetAll(c, body, wallet, fr)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return

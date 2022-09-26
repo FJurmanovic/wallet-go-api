@@ -10,22 +10,29 @@ import (
 )
 
 type TransactionStatusService struct {
-	Db *pg.DB
+	db *pg.DB
+}
+
+func NewTransactionStatusService(db *pg.DB) *TransactionStatusService {
+	return &TransactionStatusService{
+		db: db,
+	}
 }
 
 /*
 New
 
 Inserts new row to transaction status table.
-   	Args:
-		context.Context: Application context
-		*models.NewTransactionStatusBody: object to create
-	Returns:
-		*models.TransactionType: Transaction Type object from database.
-		*models.Exception: Exception payload.
+
+	   	Args:
+			context.Context: Application context
+			*models.NewTransactionStatusBody: object to create
+		Returns:
+			*models.TransactionType: Transaction Type object from database.
+			*models.Exception: Exception payload.
 */
 func (as *TransactionStatusService) New(ctx context.Context, body *models.NewTransactionStatusBody) (*models.TransactionStatus, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	tm := new(models.TransactionStatus)
 	exceptionReturn := new(models.Exception)
@@ -49,15 +56,16 @@ func (as *TransactionStatusService) New(ctx context.Context, body *models.NewTra
 GetAll
 
 Gets all rows from transaction status table.
-   	Args:
-		context.Context: Application context
-		string: Relations to embed
-	Returns:
-		*[]models.TransactionStatus: List of Transaction status objects from database.
-		*models.Exception: Exception payload.
+
+	   	Args:
+			context.Context: Application context
+			string: Relations to embed
+		Returns:
+			*[]models.TransactionStatus: List of Transaction status objects from database.
+			*models.Exception: Exception payload.
 */
 func (as *TransactionStatusService) GetAll(ctx context.Context, embed string) (*[]models.TransactionStatus, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	wm := new([]models.TransactionStatus)
 	exceptionReturn := new(models.Exception)

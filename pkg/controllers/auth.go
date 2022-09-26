@@ -5,32 +5,35 @@ import (
 	"wallet-api/pkg/middleware"
 	"wallet-api/pkg/models"
 	"wallet-api/pkg/services"
+	"wallet-api/pkg/utl/common"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AuthController struct {
-	UsersService *services.UsersService
+	service *services.UsersService
 }
 
 /*
 NewAuthController
 
 Initializes AuthController.
+
 	Args:
 		*services.UsersService: Users service
 		*gin.RouterGroup: Gin Router Group
 	Returns:
 		*AuthController: Controller for "auth" interactions
 */
-func NewAuthController(rs *services.UsersService, s *gin.RouterGroup) *AuthController {
-	rc := new(AuthController)
-	rc.UsersService = rs
+func NewAuthController(rs *services.UsersService, routeGroups *common.RouteGroups) *AuthController {
+	rc := &AuthController{
+		service: rs,
+	}
 
-	s.POST("login", rc.PostLogin)
-	s.POST("register", rc.PostRegister)
-	s.DELETE("deactivate", middleware.Auth, rc.Delete)
-	s.GET("check-token", rc.CheckToken)
+	routeGroups.Auth.POST("login", rc.PostLogin)
+	routeGroups.Auth.POST("register", rc.PostRegister)
+	routeGroups.Auth.DELETE("deactivate", middleware.Auth, rc.Delete)
+	routeGroups.Auth.GET("check-token", rc.CheckToken)
 
 	return rc
 }
@@ -47,7 +50,7 @@ func (rc *AuthController) PostLogin(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	returnedUser, exceptionReturn := rc.UsersService.Login(c, body)
+	returnedUser, exceptionReturn := rc.service.Login(c, body)
 
 	if exceptionReturn.Message != "" {
 		c.JSON(exceptionReturn.StatusCode, exceptionReturn)
@@ -71,7 +74,7 @@ func (rc *AuthController) PostRegister(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	returnedUser, exceptionReturn := rc.UsersService.Create(c, body)
+	returnedUser, exceptionReturn := rc.service.Create(c, body)
 
 	if exceptionReturn.Message != "" {
 		c.JSON(exceptionReturn.StatusCode, exceptionReturn)
@@ -92,7 +95,7 @@ func (rc *AuthController) Delete(c *gin.Context) {
 	authGet := c.MustGet("auth")
 	auth.Id = authGet.(*models.Auth).Id
 
-	mr, er := rc.UsersService.Deactivate(c, auth)
+	mr, er := rc.service.Deactivate(c, auth)
 
 	if er.Message != "" {
 		c.JSON(er.StatusCode, er)

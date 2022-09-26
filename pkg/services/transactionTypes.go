@@ -10,22 +10,29 @@ import (
 )
 
 type TransactionTypeService struct {
-	Db *pg.DB
+	db *pg.DB
+}
+
+func NewTransactionTypeService(db *pg.DB) *TransactionTypeService {
+	return &TransactionTypeService{
+		db: db,
+	}
 }
 
 /*
 New
 
 Inserts new row to transaction type table.
-   	Args:
-		context.Context: Application context
-		*models.NewTransactionTypeBody: object to create
-	Returns:
-		*models.TransactionType: Transaction Type object from database.
-		*models.Exception: Exception payload.
+
+	   	Args:
+			context.Context: Application context
+			*models.NewTransactionTypeBody: object to create
+		Returns:
+			*models.TransactionType: Transaction Type object from database.
+			*models.Exception: Exception payload.
 */
 func (as *TransactionTypeService) New(ctx context.Context, body *models.NewTransactionTypeBody) (*models.TransactionType, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	tm := new(models.TransactionType)
 	exceptionReturn := new(models.Exception)
@@ -49,15 +56,16 @@ func (as *TransactionTypeService) New(ctx context.Context, body *models.NewTrans
 GetAll
 
 Gets all rows from transaction type table.
-   	Args:
-		context.Context: Application context
-		string: Relations to embed
-	Returns:
-		*[]models.TransactionType: List of Transaction type objects from database.
-		*models.Exception: Exception payload.
+
+	   	Args:
+			context.Context: Application context
+			string: Relations to embed
+		Returns:
+			*[]models.TransactionType: List of Transaction type objects from database.
+			*models.Exception: Exception payload.
 */
 func (as *TransactionTypeService) GetAll(ctx context.Context, embed string) (*[]models.TransactionType, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	wm := new([]models.TransactionType)
 	exceptionReturn := new(models.Exception)

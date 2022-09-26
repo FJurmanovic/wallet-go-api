@@ -12,22 +12,29 @@ import (
 )
 
 type SubscriptionService struct {
-	Db *pg.DB
+	db *pg.DB
+}
+
+func NewSubscriptionService(db *pg.DB) *SubscriptionService {
+	return &SubscriptionService{
+		db: db,
+	}
 }
 
 /*
 New
 
 Inserts new row to subscription table.
-   	Args:
-   		context.Context: Application context
-		*models.NewSubscriptionBody: Request body
-	Returns:
-		*models.Subscription: Created Subscription row object from database.
-		*models.Exception: Exception payload.
+
+	   	Args:
+	   		context.Context: Application context
+			*models.NewSubscriptionBody: Request body
+		Returns:
+			*models.Subscription: Created Subscription row object from database.
+			*models.Exception: Exception payload.
 */
 func (as *SubscriptionService) New(ctx context.Context, body *models.NewSubscriptionBody) (*models.Subscription, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	tm := new(models.Subscription)
 	exceptionReturn := new(models.Exception)
@@ -69,17 +76,18 @@ func (as *SubscriptionService) New(ctx context.Context, body *models.NewSubscrip
 Get
 
 Gets row from subscription table by id.
-   	Args:
-   		context.Context: Application context
-		*models.Auth: Authentication model
-		string: subscription id to search
-		params: *models.Params
-	Returns:
-		*models.Subscription: Subscription row object from database.
-		*models.Exception: Exception payload.
+
+	   	Args:
+	   		context.Context: Application context
+			*models.Auth: Authentication model
+			string: subscription id to search
+			params: *models.Params
+		Returns:
+			*models.Subscription: Subscription row object from database.
+			*models.Exception: Exception payload.
 */
 func (as *SubscriptionService) Get(ctx context.Context, am *models.Auth, id string, params *models.Params) (*models.Subscription, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	exceptionReturn := new(models.Exception)
 	wm := new(models.Subscription)
@@ -106,16 +114,17 @@ func (as *SubscriptionService) Get(ctx context.Context, am *models.Auth, id stri
 GetAll
 
 Gets filtered rows from subscription table.
-   	Args:
-   		context.Context: Application context
-		*models.Auth: Authentication object
-		string: Wallet id to search
-		*models.FilteredResponse: filter options
-	Returns:
-		*models.Exception: Exception payload.
+
+	   	Args:
+	   		context.Context: Application context
+			*models.Auth: Authentication object
+			string: Wallet id to search
+			*models.FilteredResponse: filter options
+		Returns:
+			*models.Exception: Exception payload.
 */
 func (as *SubscriptionService) GetAll(ctx context.Context, am *models.Auth, walletId string, filtered *models.FilteredResponse) *models.Exception {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	wm := new([]models.Subscription)
 	exceptionReturn := new(models.Exception)
@@ -144,16 +153,17 @@ func (as *SubscriptionService) GetAll(ctx context.Context, am *models.Auth, wall
 Edit
 
 Updates row from subscription table by id.
-   	Args:
-   		context.Context: Application context
-		*models.SubscriptionEdit: Values to edit
-		string: id to search
-	Returns:
-		*models.Subscription: Edited Subscription row object from database.
-		*models.Exception: Exception payload.
+
+	   	Args:
+	   		context.Context: Application context
+			*models.SubscriptionEdit: Values to edit
+			string: id to search
+		Returns:
+			*models.Subscription: Edited Subscription row object from database.
+			*models.Exception: Exception payload.
 */
 func (as *SubscriptionService) Edit(ctx context.Context, body *models.SubscriptionEdit, id string) (*models.Subscription, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 
 	amount, _ := body.Amount.Float64()
 	exceptionReturn := new(models.Exception)
@@ -188,15 +198,16 @@ End
 Updates row in subscription table by id.
 
 Ends subscription with current date.
-   	Args:
-   		context.Context: Application context
-		string: id to search
-	Returns:
-		*models.Subscription: Created Subscription row object from database.
-		*models.Exception: Exception payload.
+
+	   	Args:
+	   		context.Context: Application context
+			string: id to search
+		Returns:
+			*models.Subscription: Created Subscription row object from database.
+			*models.Exception: Exception payload.
 */
 func (as *SubscriptionService) End(ctx context.Context, id string) (*models.Subscription, *models.Exception) {
-	db := as.Db.WithContext(ctx)
+	db := as.db.WithContext(ctx)
 	exceptionReturn := new(models.Exception)
 
 	tm := new(models.Subscription)
@@ -224,11 +235,12 @@ func (as *SubscriptionService) End(ctx context.Context, id string) (*models.Subs
 SubToTrans
 
 Generates and Inserts new Transaction rows from the subscription model.
-   	Args:
-		*models.Subscription: Subscription model to generate new transactions from
-		*pg.Tx: Postgres query context
-	Returns:
-		*models.Exception: Exception payload.
+
+	   	Args:
+			*models.Subscription: Subscription model to generate new transactions from
+			*pg.Tx: Postgres query context
+		Returns:
+			*models.Exception: Exception payload.
 */
 func (as *SubscriptionService) SubToTrans(subModel *models.Subscription, tx *pg.Tx) *models.Exception {
 	exceptionReturn := new(models.Exception)
