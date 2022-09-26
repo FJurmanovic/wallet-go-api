@@ -3,7 +3,7 @@ package migrate
 import (
 	"fmt"
 	"log"
-	"wallet-api/pkg/models"
+	"wallet-api/pkg/model"
 
 	"github.com/go-pg/pg/v10"
 )
@@ -12,15 +12,16 @@ import (
 PopulateTransactionStatus
 
 Populates transaction_status table if it exists.
-   	Args:
-   		*pg.DB: Postgres database client
-	Returns:
-		error: Returns if there is an error with populating table
+
+	   	Args:
+	   		*pg.DB: Postgres database client
+		Returns:
+			error: Returns if there is an error with populating table
 */
 func PopulateTransactionStatus(db pg.DB) error {
-	completed := new(models.TransactionStatus)
-	pending := new(models.TransactionStatus)
-	deleted := new(models.TransactionStatus)
+	completed := new(model.TransactionStatus)
+	pending := new(model.TransactionStatus)
+	deleted := new(model.TransactionStatus)
 
 	completed.Init()
 	completed.Name = "Completed"

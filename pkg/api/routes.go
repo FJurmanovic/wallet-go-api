@@ -1,9 +1,8 @@
 package api
 
 import (
-	"wallet-api/pkg/controllers"
+	"wallet-api/pkg/controller"
 	"wallet-api/pkg/middleware"
-	"wallet-api/pkg/services"
 	"wallet-api/pkg/utl/common"
 	"wallet-api/pkg/utl/configs"
 
@@ -47,22 +46,5 @@ func Routes(s *gin.Engine, db *pg.DB) {
 	c.Provide(func() *pg.DB {
 		return db
 	})
-	c.Provide(services.NewApiService)
-	c.Provide(services.NewSubscriptionService)
-	c.Provide(services.NewSubscriptionTypeService)
-	c.Provide(services.NewTransactionService)
-	c.Provide(services.NewTransactionStatusService)
-	c.Provide(services.NewTransactionTypeService)
-	c.Provide(services.NewUsersService)
-	c.Provide(services.NewWalletService)
-
-	c.Invoke(controllers.NewApiController)
-	c.Invoke(controllers.NewAuthController)
-	c.Invoke(controllers.NewWalletsController)
-	c.Invoke(controllers.NewWalletsHeaderController)
-	c.Invoke(controllers.NewTransactionController)
-	c.Invoke(controllers.NewTransactionStatusController)
-	c.Invoke(controllers.NewTransactionTypeController)
-	c.Invoke(controllers.NewSubscriptionController)
-	c.Invoke(controllers.NewSubscriptionTypeController)
+	controller.InitializeControllers(c)
 }

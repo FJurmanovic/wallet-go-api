@@ -3,7 +3,7 @@ package middleware
 import (
 	"net/http"
 	"os"
-	"wallet-api/pkg/models"
+	"wallet-api/pkg/model"
 	"wallet-api/pkg/utl/configs"
 
 	"github.com/gin-gonic/gin"
@@ -13,11 +13,12 @@ import (
 SecretCode
 
 Checks if secret code from body is valid.
-   	Args:
-   		*gin.Context: Gin Application Context.
+
+	Args:
+		*gin.Context: Gin Application Context.
 */
 func SecretCode(c *gin.Context) {
-	exceptionReturn := new(models.Exception)
+	exceptionReturn := new(model.Exception)
 	secretCode := ExtractCode(c)
 	secret := os.Getenv("SECRET_CODE")
 	if secret == "" {
@@ -37,8 +38,9 @@ func SecretCode(c *gin.Context) {
 ExtractCode
 
 Extracts the secret code from body.
-   	Args:
-   		*gin.Context: Gin Application Context.
+
+	Args:
+		*gin.Context: Gin Application Context.
 */
 func ExtractCode(c *gin.Context) SecretCodeModel {
 	secret := new(SecretCodeModel)

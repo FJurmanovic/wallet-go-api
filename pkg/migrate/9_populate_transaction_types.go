@@ -3,7 +3,7 @@ package migrate
 import (
 	"fmt"
 	"log"
-	"wallet-api/pkg/models"
+	"wallet-api/pkg/model"
 
 	"github.com/go-pg/pg/v10"
 )
@@ -12,14 +12,15 @@ import (
 PopulateTransactionTypes
 
 Populates transaction_types table if it exists.
-   	Args:
-   		*pg.DB: Postgres database client
-	Returns:
-		error: Returns if there is an error with populating table
+
+	   	Args:
+	   		*pg.DB: Postgres database client
+		Returns:
+			error: Returns if there is an error with populating table
 */
 func PopulateTransactionTypes(db pg.DB) error {
-	gain := new(models.TransactionType)
-	expense := new(models.TransactionType)
+	gain := new(model.TransactionType)
+	expense := new(model.TransactionType)
 
 	gain.Init()
 	gain.Name = "Gain"

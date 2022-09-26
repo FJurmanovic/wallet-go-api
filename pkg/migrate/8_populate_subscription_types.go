@@ -3,7 +3,7 @@ package migrate
 import (
 	"fmt"
 	"log"
-	"wallet-api/pkg/models"
+	"wallet-api/pkg/model"
 
 	"github.com/go-pg/pg/v10"
 )
@@ -12,16 +12,17 @@ import (
 PopulateSubscriptionTypes
 
 Populates subscription_types table if it exists.
-   	Args:
-   		*pg.DB: Postgres database client
-	Returns:
-		error: Returns if there is an error with populating table
+
+	   	Args:
+	   		*pg.DB: Postgres database client
+		Returns:
+			error: Returns if there is an error with populating table
 */
 func PopulateSubscriptionTypes(db pg.DB) error {
-	daily := new(models.SubscriptionType)
-	weekly := new(models.SubscriptionType)
-	monthly := new(models.SubscriptionType)
-	yearly := new(models.SubscriptionType)
+	daily := new(model.SubscriptionType)
+	weekly := new(model.SubscriptionType)
+	monthly := new(model.SubscriptionType)
+	yearly := new(model.SubscriptionType)
 
 	daily.Init()
 	daily.Name = "Daily"

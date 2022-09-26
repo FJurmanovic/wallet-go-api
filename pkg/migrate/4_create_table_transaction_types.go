@@ -3,7 +3,7 @@ package migrate
 import (
 	"fmt"
 	"log"
-	"wallet-api/pkg/models"
+	"wallet-api/pkg/model"
 
 	"github.com/go-pg/pg/v10"
 
@@ -14,14 +14,15 @@ import (
 CreateTableTransactionTypes
 
 Creates transaction_types table if it does not exist.
-   	Args:
-   		*pg.DB: Postgres database client
-	Returns:
-		error: Returns if there is an error with table creation
+
+	   	Args:
+	   		*pg.DB: Postgres database client
+		Returns:
+			error: Returns if there is an error with table creation
 */
 func CreateTableTransactionTypes(db pg.DB) error {
 	models := []interface{}{
-		(*models.TransactionType)(nil),
+		(*model.TransactionType)(nil),
 	}
 
 	for _, model := range models {
