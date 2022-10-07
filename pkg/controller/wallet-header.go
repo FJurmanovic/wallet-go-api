@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"wallet-api/pkg/filter"
 	"wallet-api/pkg/model"
 	"wallet-api/pkg/service"
 	"wallet-api/pkg/utl/common"
@@ -40,14 +41,17 @@ Get
 */
 // ROUTE (GET /wallet/wallet-header)
 func (wc *WalletHeaderController) Get(c *gin.Context) {
-	body := new(model.Auth)
-
 	walletId, _ := c.GetQuery("walletId")
 
 	auth := c.MustGet("auth")
-	body.Id = auth.(*model.Auth).Id
+	userId := auth.(*model.Auth).Id
+	embed, _ := c.GetQuery("embed")
 
-	wm, exception := wc.service.GetHeader(c, body, walletId)
+	flt := filter.NewWalletHeaderFilter(model.Params{Embed: embed})
+	flt.UserId = userId
+	flt.WalletId = walletId
+
+	wm, exception := wc.service.GetHeader(c, flt)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return

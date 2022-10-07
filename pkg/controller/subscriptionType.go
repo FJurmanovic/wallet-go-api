@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"wallet-api/pkg/filter"
 	"wallet-api/pkg/model"
 	"wallet-api/pkg/service"
 	"wallet-api/pkg/utl/common"
@@ -48,7 +49,9 @@ func (wc *SubscriptionTypeController) New(c *gin.Context) {
 		return
 	}
 
-	wm, exception := wc.service.New(c, body)
+	mdl := body.ToSubscriptionType()
+
+	wm, exception := wc.service.New(c, mdl)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -65,7 +68,9 @@ GetAll
 func (wc *SubscriptionTypeController) GetAll(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 
-	wm, exception := wc.service.GetAll(c, embed)
+	flt := filter.NewSubscriptionTypeFilter(model.Params{Embed: embed})
+
+	wm, exception := wc.service.GetAll(c, flt)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return

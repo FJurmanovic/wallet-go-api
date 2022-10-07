@@ -54,7 +54,8 @@ Gets all rows from subscription type table.
 			*[]model.SubscriptionType: List of subscription type objects.
 			*model.Exception: Exception payload.
 */
-func (as *SubscriptionTypeRepository) GetAll(ctx context.Context, flt *filter.SubscriptionTypeFilter, wm *[]model.SubscriptionType) (*[]model.SubscriptionType, error) {
+func (as *SubscriptionTypeRepository) GetAll(ctx context.Context, flt *filter.SubscriptionTypeFilter) (*[]model.SubscriptionType, error) {
+	wm := new([]model.SubscriptionType)
 	db := as.db.WithContext(ctx)
 
 	query := db.Model(wm)

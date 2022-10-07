@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"wallet-api/pkg/filter"
 	"wallet-api/pkg/model"
 	"wallet-api/pkg/service"
 	"wallet-api/pkg/utl/common"
@@ -69,13 +70,14 @@ GetAll
 */
 // ROUTE (GET /wallet)
 func (wc *WalletController) GetAll(c *gin.Context) {
-	body := new(model.Auth)
 	auth := c.MustGet("auth")
-	body.Id = auth.(*model.Auth).Id
+	userId := auth.(*model.Auth).Id
 
-	fr := FilteredResponse(c)
+	embed, _ := c.GetQuery("embed")
+	flt := filter.NewWalletFilter(model.Params{Embed: embed})
+	flt.UserId = userId
 
-	exception := wc.service.GetAll(c, body, fr)
+	fr, exception := wc.service.GetAll(c, flt)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -99,7 +101,10 @@ func (wc *WalletController) Edit(c *gin.Context) {
 
 	id := c.Param("id")
 
-	wm, exception := wc.service.Edit(c, body, id)
+	mdl := body.ToWallet()
+	mdl.Id = id
+
+	wm, exception := wc.service.Edit(c, mdl)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -121,7 +126,10 @@ func (wc *WalletController) Get(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 	params.Embed = embed
 
-	fr, exception := wc.service.Get(c, id, params)
+	flt := filter.NewWalletFilter(*params)
+	flt.Id = id
+
+	fr, exception := wc.service.Get(c, flt)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return

@@ -37,17 +37,26 @@ Inserts
 			*model.Transaction: Transaction object
 			*model.Exception: Exception payload.
 */
-func (as *TransactionRepository) New(ctx context.Context, tm *model.Transaction) (*model.Transaction, error) {
-	db := as.db.WithContext(ctx)
+func (as *TransactionRepository) New(ctx context.Context, tm *model.Transaction, tx *pg.Tx) (*model.Transaction, error) {
+	var commit = false
+	if tx == nil {
+		commit = true
+		db := as.db.WithContext(ctx)
+		tx, _ = db.Begin()
 
-	tx, _ := db.Begin()
-	defer tx.Rollback()
+	}
+
+	if commit {
+		defer tx.Rollback()
+	}
 
 	_, err := tx.Model(tm).Insert()
 	if err != nil {
 		return nil, err
 	}
-	tx.Commit()
+	if commit {
+		tx.Commit()
+	}
 
 	return tm, nil
 }
@@ -63,48 +72,76 @@ Gets all rows from subscription type table.
 		*model.Exception: Exception payload.
 */
 // Gets filtered rows from transaction table.
-func (as *TransactionRepository) GetAll(ctx context.Context, filtered *model.FilteredResponse, flt *filter.TransactionFilter) *model.Exception {
+func (as *TransactionRepository) GetAll(ctx context.Context, flt *filter.TransactionFilter) (*model.FilteredResponse, *model.Exception) {
 	db := as.db.WithContext(ctx)
 
 	exceptionReturn := new(model.Exception)
 	wm := new([]model.Transaction)
-	transactionStatus := new(model.TransactionStatus)
 
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 
-	tsFlt := filter.NewTransactionStatusFilter(model.Params{})
-	tsFlt.Status = "completed"
-	_, err := as.transactionStatusRepository.GetTx(tx, transactionStatus, tsFlt)
+	if flt.NoPending {
+		tsFlt := filter.NewTransactionStatusFilter(model.Params{})
+		tsFlt.Status = "completed"
+		transactionStatus, err := as.transactionStatusRepository.GetTx(tx, tsFlt)
 
-	if err != nil {
-		exceptionReturn.StatusCode = 400
-		exceptionReturn.ErrorCode = "400117"
-		exceptionReturn.Message = fmt.Sprintf("Error selecting row in \"transactionStatus\" table: %s", err)
-		return exceptionReturn
+		if err != nil {
+			exceptionReturn.StatusCode = 400
+			exceptionReturn.ErrorCode = "400117"
+			exceptionReturn.Message = fmt.Sprintf("Error selecting row in \"transactionStatus\" table: %s", err)
+			return nil, exceptionReturn
+		}
+
+		flt.TransactionStatusId = transactionStatus.Id
 	}
-
-	flt.TransactionStatusId = transactionStatus.Id
 
 	query := tx.Model(wm)
 
 	as.OnBeforeGetTransactionFilter(query, flt)
-	err = FilteredResponse(query, wm, filtered)
+	filtered, err := FilteredResponse(query, wm, flt.Params)
 	if err != nil {
 		exceptionReturn.StatusCode = 400
 		exceptionReturn.ErrorCode = "400118"
 		exceptionReturn.Message = fmt.Sprintf("Error selecting row(s) in \"transaction\" table: %s", err)
-		return exceptionReturn
+		return nil, exceptionReturn
 	}
 
 	tx.Commit()
-	return nil
+	return filtered, nil
+}
+
+/*
+GetAllTx
+
+Gets filtered rows from transaction table.
+
+	   	Args:
+	   		context.Context: Application context
+			*model.Auth: Authentication object
+			string: Wallet id to search
+			*model.FilteredResponse: filter options
+		Returns:
+			*model.Exception: Exception payload.
+*/
+func (as *TransactionRepository) GetAllTx(tx *pg.Tx, flt *filter.TransactionFilter) (*[]model.Transaction, error) {
+	am := new([]model.Transaction)
+	query := tx.Model(am)
+	as.OnBeforeGetTransactionFilter(query, flt)
+
+	common.GenerateEmbed(query, flt.Embed)
+	err := query.Select()
+	if err != nil {
+		return nil, err
+	}
+
+	return am, nil
 }
 
 /*
 Check
 
-Checks subscriptions and create transacitons.
+Checks subscriptions and create transactions.
    	Args:
 		context.Context: Application context
 		string: Relations to embed
@@ -112,32 +149,37 @@ Checks subscriptions and create transacitons.
 		*model.Exception: Exception payload.
 */
 // Gets filtered rows from transaction table.
-func (as *TransactionRepository) Check(ctx context.Context, filtered *model.FilteredResponse, flt *filter.TransactionFilter) *model.Exception {
+func (as *TransactionRepository) Check(ctx context.Context, flt *filter.TransactionFilter) (*model.FilteredResponse, *model.Exception) {
 	db := as.db.WithContext(ctx)
 
 	wm := new([]model.Transaction)
-	sm := new([]model.Subscription)
-	transactionStatus := new(model.TransactionStatus)
 	exceptionReturn := new(model.Exception)
+	filtered := new(model.FilteredResponse)
 
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 
 	tsFlt := filter.NewTransactionStatusFilter(model.Params{})
 	tsFlt.Status = "pending"
-	_, err := as.transactionStatusRepository.GetTx(tx, transactionStatus, tsFlt)
+	transactionStatus, err := as.transactionStatusRepository.GetTx(tx, tsFlt)
 	if err != nil {
 		exceptionReturn.StatusCode = 400
 		exceptionReturn.ErrorCode = "400119"
 		exceptionReturn.Message = fmt.Sprintf("Error selecting row in \"transactionStatus\" table: %s", err)
-		return exceptionReturn
+		return nil, exceptionReturn
 	}
 	flt.TransactionStatusId = transactionStatus.Id
 
 	smFlt := filter.NewSubscriptionFilter(model.Params{})
 	smFlt.Id = flt.Id
 	smFlt.WalletId = flt.WalletId
-	as.subscriptionRepository.GetAllTx(tx, sm, smFlt)
+	sm, err := as.subscriptionRepository.GetAllTx(tx, smFlt)
+	if err != nil {
+		exceptionReturn.StatusCode = 400
+		exceptionReturn.ErrorCode = "400137"
+		exceptionReturn.Message = fmt.Sprintf("Error selecting rows in \"subscription\" table: %s", err)
+		return nil, exceptionReturn
+	}
 
 	for _, sub := range *sm {
 		if sub.HasNew() {
@@ -147,16 +189,16 @@ func (as *TransactionRepository) Check(ctx context.Context, filtered *model.Filt
 
 	qry := tx.Model(wm)
 	as.OnBeforeGetTransactionFilter(qry, flt)
-	err = FilteredResponse(qry, wm, filtered)
+	filtered, err = FilteredResponse(qry, wm, flt.Params)
 	if err != nil {
 		exceptionReturn.StatusCode = 400
 		exceptionReturn.ErrorCode = "400120"
 		exceptionReturn.Message = fmt.Sprintf("Error selecting row in \"transaction\" table: %s", err)
-		return exceptionReturn
+		return nil, exceptionReturn
 	}
 
 	tx.Commit()
-	return nil
+	return filtered, nil
 }
 
 /*
@@ -195,7 +237,7 @@ func (as *TransactionRepository) Edit(ctx context.Context, tm *model.Transaction
 }
 
 /*
-Bulk Edit
+BulkEdit
 
 Updates row in transaction table by id.
 
@@ -239,6 +281,7 @@ Gets row from transaction table by id.
 func (as *TransactionRepository) Get(ctx context.Context, flt *filter.TransactionFilter) (*model.Transaction, error) {
 	db := as.db.WithContext(ctx)
 	wm := new(model.Transaction)
+	wm.Id = flt.Id
 
 	tx, _ := db.Begin()
 	defer tx.Rollback()
@@ -259,10 +302,15 @@ func (as *TransactionRepository) OnBeforeGetTransactionFilter(qry *orm.Query, fl
 	if flt.WalletId != "" {
 		qry.Where("? = ?", pg.Ident("wallet_id"), flt.WalletId)
 	}
-	if flt.Id != "" {
-		qry.Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), flt.Id)
+	if flt.UserId != "" {
+		qry.Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), flt.UserId)
 	}
-	if flt.NoPending && flt.TransactionStatusId != "" {
+	if flt.TransactionStatusId != "" {
 		qry.Where("? = ?", pg.Ident("transaction_status_id"), flt.TransactionStatusId)
 	}
+}
+
+func (as *TransactionRepository) CreateTx(ctx context.Context) (*pg.Tx, error) {
+	db := as.db.WithContext(ctx)
+	return db.Begin()
 }

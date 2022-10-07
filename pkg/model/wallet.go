@@ -33,3 +33,18 @@ type WalletEdit struct {
 	Id   string `json:"id" form:"id"`
 	Name string `json:"name" form:"name"`
 }
+
+func (body *NewWalletBody) ToWallet() *Wallet {
+	tm := new(Wallet)
+	tm.Init()
+	tm.Name = body.Name
+	tm.UserID = body.UserID
+	return tm
+}
+
+func (body *WalletEdit) ToWallet() *Wallet {
+	tm := new(Wallet)
+	tm.Name = body.Name
+	tm.Id = body.Id
+	return tm
+}

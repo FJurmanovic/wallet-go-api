@@ -1,8 +1,9 @@
 package service
 
 import (
-	"go.uber.org/dig"
 	"wallet-api/pkg/repository"
+
+	"go.uber.org/dig"
 )
 
 /*

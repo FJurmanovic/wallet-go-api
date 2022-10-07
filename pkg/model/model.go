@@ -1,6 +1,8 @@
 package model
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 type FilteredResponse struct {
 	Items interface{} `json:"items"`

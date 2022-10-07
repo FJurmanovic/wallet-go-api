@@ -5,18 +5,16 @@ import (
 	"fmt"
 	"wallet-api/pkg/filter"
 	"wallet-api/pkg/model"
-	"wallet-api/pkg/utl/common"
-
-	"github.com/go-pg/pg/v10"
+	"wallet-api/pkg/repository"
 )
 
 type TransactionStatusService struct {
-	db *pg.DB
+	repository *repository.TransactionStatusRepository
 }
 
-func NewTransactionStatusService(db *pg.DB) *TransactionStatusService {
+func NewTransactionStatusService(repository *repository.TransactionStatusRepository) *TransactionStatusService {
 	return &TransactionStatusService{
-		db: db,
+		repository: repository,
 	}
 }
 
@@ -32,17 +30,10 @@ Inserts new row to transaction status table.
 			*model.TransactionType: Transaction Type object from database.
 			*model.Exception: Exception payload.
 */
-func (as *TransactionStatusService) New(ctx context.Context, body *model.NewTransactionStatusBody) (*model.TransactionStatus, *model.Exception) {
-	db := as.db.WithContext(ctx)
-
-	tm := new(model.TransactionStatus)
+func (as *TransactionStatusService) New(ctx context.Context, tm *model.TransactionStatus) (*model.TransactionStatus, *model.Exception) {
 	exceptionReturn := new(model.Exception)
 
-	tm.Init()
-	tm.Name = body.Name
-	tm.Status = body.Status
-
-	_, err := db.Model(tm).Insert()
+	response, err := as.repository.New(ctx, tm)
 	if err != nil {
 		exceptionReturn.StatusCode = 400
 		exceptionReturn.ErrorCode = "400123"
@@ -50,7 +41,7 @@ func (as *TransactionStatusService) New(ctx context.Context, body *model.NewTran
 		return nil, exceptionReturn
 	}
 
-	return tm, nil
+	return response, nil
 }
 
 /*
@@ -65,14 +56,10 @@ Gets all rows from transaction status table.
 			*[]model.TransactionStatus: List of Transaction status objects from database.
 			*model.Exception: Exception payload.
 */
-func (as *TransactionStatusService) GetAll(ctx context.Context, embed string) (*[]model.TransactionStatus, *model.Exception) {
-	db := as.db.WithContext(ctx)
-
-	wm := new([]model.TransactionStatus)
+func (as *TransactionStatusService) GetAll(ctx context.Context, flt *filter.TransactionStatusFilter) (*[]model.TransactionStatus, *model.Exception) {
 	exceptionReturn := new(model.Exception)
 
-	query := db.Model(wm)
-	err := common.GenerateEmbed(query, embed).Select()
+	response, err := as.repository.GetAll(ctx, flt, nil)
 	if err != nil {
 		exceptionReturn.StatusCode = 400
 		exceptionReturn.ErrorCode = "400124"
@@ -80,7 +67,7 @@ func (as *TransactionStatusService) GetAll(ctx context.Context, embed string) (*
 		return nil, exceptionReturn
 	}
 
-	return wm, nil
+	return response, nil
 }
 
 func (as *TransactionStatusService) Get(ctx context.Context, flt *filter.TransactionStatusFilter) (*model.TransactionStatus, *model.Exception) {
@@ -92,7 +79,7 @@ func (as *TransactionStatusService) Get(ctx context.Context, flt *filter.Transac
 	if flt.Status != "" {
 		transactionStatus.Status = flt.Status
 	}
-	response, err := as.repository.Get(ctx, wm, flt)
+	response, err := as.repository.Get(ctx, flt, nil)
 	if err != nil {
 		exceptionReturn.StatusCode = 400
 		exceptionReturn.ErrorCode = "400129"

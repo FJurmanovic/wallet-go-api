@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"wallet-api/pkg/filter"
 	"wallet-api/pkg/model"
 	"wallet-api/pkg/service"
 	"wallet-api/pkg/utl/common"
@@ -47,8 +48,9 @@ func (wc *TransactionTypeController) New(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	mdl := body.ToTransactionType()
 
-	wm, exception := wc.service.New(c, body)
+	wm, exception := wc.service.New(c, mdl)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -65,7 +67,9 @@ GetAll
 func (wc *TransactionTypeController) GetAll(c *gin.Context) {
 	embed, _ := c.GetQuery("embed")
 
-	wm, exception := wc.service.GetAll(c, embed)
+	flt := filter.NewTransactionTypeFilter(model.Params{Embed: embed})
+
+	wm, exception := wc.service.GetAll(c, flt)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return

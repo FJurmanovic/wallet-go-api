@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"wallet-api/pkg/filter"
 	"wallet-api/pkg/model"
 	"wallet-api/pkg/service"
 	"wallet-api/pkg/utl/common"
@@ -60,7 +61,9 @@ func (wc *TransactionController) New(c *gin.Context) {
 		return
 	}
 
-	wm, exception := wc.service.New(c, body)
+	mdl := body.ToTransaction()
+
+	wm, exception := wc.service.New(c, mdl)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -75,17 +78,22 @@ GetAll
 */
 // ROUTE (GET /transactions)
 func (wc *TransactionController) GetAll(c *gin.Context) {
-	body := new(model.Auth)
 	auth := c.MustGet("auth")
-	body.Id = auth.(*model.Auth).Id
+	userId := auth.(*model.Auth).Id
 
 	fr := FilteredResponse(c)
 	wallet, _ := c.GetQuery("walletId")
+	embed, _ := c.GetQuery("embed")
 
 	noPendingQry, _ := c.GetQuery("noPending")
 	noPending := noPendingQry != ""
 
-	exception := wc.service.GetAll(c, body, wallet, fr, noPending)
+	flt := filter.NewTransactionFilter(model.Params{Embed: embed})
+	flt.WalletId = wallet
+	flt.NoPending = noPending
+	flt.UserId = userId
+
+	fr, exception := wc.service.GetAll(c, flt)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -101,14 +109,17 @@ Check
 */
 // ROUTE (GET /transactions)
 func (wc *TransactionController) Check(c *gin.Context) {
-	body := new(model.Auth)
 	auth := c.MustGet("auth")
-	body.Id = auth.(*model.Auth).Id
+	userId := auth.(*model.Auth).Id
 
 	fr := FilteredResponse(c)
 	wallet, _ := c.GetQuery("walletId")
 
-	exception := wc.service.Check(c, body, wallet, fr)
+	flt := filter.NewTransactionFilter(model.Params{})
+	flt.WalletId = wallet
+	flt.UserId = userId
+
+	fr, exception := wc.service.Check(c, flt)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -131,8 +142,10 @@ func (wc *TransactionController) Edit(c *gin.Context) {
 	}
 
 	id := c.Param("id")
+	mdl := body.ToTransaction()
+	mdl.Id = id
 
-	wm, exception := wc.service.Edit(c, body, id)
+	wm, exception := wc.service.Edit(c, mdl)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -153,7 +166,13 @@ func (wc *TransactionController) BulkEdit(c *gin.Context) {
 		return
 	}
 
-	wm, exception := wc.service.BulkEdit(c, body)
+	mdl := new([]model.Transaction)
+	for _, transaction := range *body {
+		tm := transaction.ToTransaction()
+		*mdl = append(*mdl, *tm)
+	}
+
+	wm, exception := wc.service.BulkEdit(c, mdl)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -168,18 +187,21 @@ Get
 */
 // ROUTE (GET /transactions/:id)
 func (wc *TransactionController) Get(c *gin.Context) {
-	body := new(model.Auth)
 	params := new(model.Params)
 
 	auth := c.MustGet("auth")
-	body.Id = auth.(*model.Auth).Id
+	userId := auth.(*model.Auth).Id
 
 	id := c.Param("id")
 
 	embed, _ := c.GetQuery("embed")
 	params.Embed = embed
 
-	fr, exception := wc.service.Get(c, body, id, params)
+	flt := filter.NewTransactionFilter(*params)
+	flt.Id = id
+	flt.UserId = userId
+
+	fr, exception := wc.service.Get(c, flt)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return

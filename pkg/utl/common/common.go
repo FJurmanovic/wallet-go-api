@@ -52,3 +52,12 @@ func GetIP() string {
 	}
 	return ""
 }
+
+func Find[T any](lst *[]T, callback func(item *T) bool) *T {
+	for _, item := range *lst {
+		if callback(&item) {
+			return &item
+		}
+	}
+	return nil
+}

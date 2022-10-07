@@ -14,7 +14,7 @@ type SubscriptionTypeService struct {
 
 func NewSubscriptionTypeService(repository *repository.SubscriptionTypeRepository) *SubscriptionTypeService {
 	return &SubscriptionTypeService{
-		repository,
+		repository: repository,
 	}
 }
 
@@ -30,13 +30,8 @@ Inserts new row to subscription type table.
 			*model.SubscriptionType: Created row from database.
 			*model.Exception: Exception payload.
 */
-func (as *SubscriptionTypeService) New(ctx context.Context, body *model.NewSubscriptionTypeBody) (*model.SubscriptionType, *model.Exception) {
-	tm := new(model.SubscriptionType)
+func (as *SubscriptionTypeService) New(ctx context.Context, tm *model.SubscriptionType) (*model.SubscriptionType, *model.Exception) {
 	exceptionReturn := new(model.Exception)
-
-	tm.Init()
-	tm.Name = body.Name
-	tm.Type = body.Type
 
 	response, err := as.repository.New(ctx, tm)
 	if err != nil {
@@ -61,14 +56,10 @@ Gets all rows from subscription type table.
 			*[]model.SubscriptionType: List of subscription type objects.
 			*model.Exception: Exception payload.
 */
-func (as *SubscriptionTypeService) GetAll(ctx context.Context, embed string) (*[]model.SubscriptionType, *model.Exception) {
-	wm := new([]model.SubscriptionType)
+func (as *SubscriptionTypeService) GetAll(ctx context.Context, flt *filter.SubscriptionTypeFilter) (*[]model.SubscriptionType, *model.Exception) {
 	exceptionReturn := new(model.Exception)
 
-	flt := filter.NewSubscriptionTypeFilter(model.Params{
-		Embed: embed,
-	})
-	response, err := as.repository.GetAll(ctx, flt, wm)
+	response, err := as.repository.GetAll(ctx, flt)
 	if err != nil {
 		exceptionReturn.StatusCode = 400
 		exceptionReturn.ErrorCode = "400135"

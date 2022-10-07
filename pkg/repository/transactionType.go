@@ -2,7 +2,7 @@ package repository
 
 import (
 	"context"
-	"fmt"
+	"wallet-api/pkg/filter"
 	"wallet-api/pkg/model"
 	"wallet-api/pkg/utl/common"
 
@@ -31,22 +31,12 @@ Inserts new row to transaction type table.
 			*model.TransactionType: Transaction Type object from database.
 			*model.Exception: Exception payload.
 */
-func (as *TransactionTypeRepository) New(ctx context.Context, body *model.NewTransactionTypeBody) (*model.TransactionType, *model.Exception) {
+func (as *TransactionTypeRepository) New(ctx context.Context, tm *model.TransactionType) (*model.TransactionType, error) {
 	db := as.db.WithContext(ctx)
-
-	tm := new(model.TransactionType)
-	exceptionReturn := new(model.Exception)
-
-	tm.Init()
-	tm.Name = body.Name
-	tm.Type = body.Type
 
 	_, err := db.Model(tm).Insert()
 	if err != nil {
-		exceptionReturn.StatusCode = 400
-		exceptionReturn.ErrorCode = "400125"
-		exceptionReturn.Message = fmt.Sprintf("Error inserting row in \"transactionTypes\" table: %s", err)
-		return nil, exceptionReturn
+		return nil, err
 	}
 
 	return tm, nil
@@ -64,19 +54,15 @@ Gets all rows from transaction type table.
 			*[]model.TransactionType: List of Transaction type objects from database.
 			*model.Exception: Exception payload.
 */
-func (as *TransactionTypeRepository) GetAll(ctx context.Context, embed string) (*[]model.TransactionType, *model.Exception) {
+func (as *TransactionTypeRepository) GetAll(ctx context.Context, flt *filter.TransactionTypeFilter) (*[]model.TransactionType, error) {
 	db := as.db.WithContext(ctx)
 
 	wm := new([]model.TransactionType)
-	exceptionReturn := new(model.Exception)
 
 	query := db.Model(wm)
-	err := common.GenerateEmbed(query, embed).Select()
+	err := common.GenerateEmbed(query, flt.Embed).Select()
 	if err != nil {
-		exceptionReturn.StatusCode = 400
-		exceptionReturn.ErrorCode = "400133"
-		exceptionReturn.Message = fmt.Sprintf("Error selecting row in \"transactionTypes\" table: %s", err)
-		return nil, exceptionReturn
+		return nil, err
 	}
 
 	return wm, nil

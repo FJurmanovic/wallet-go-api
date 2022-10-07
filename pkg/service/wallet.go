@@ -4,21 +4,24 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"wallet-api/pkg/filter"
 	"wallet-api/pkg/model"
-	"wallet-api/pkg/utl/common"
-
-	"github.com/go-pg/pg/v10"
+	"wallet-api/pkg/repository"
 )
 
 type WalletService struct {
-	db                  *pg.DB
-	subscriptionService *SubscriptionService
+	repository                  *repository.WalletRepository
+	subscriptionRepository      *repository.SubscriptionRepository
+	transactionStatusRepository *repository.TransactionStatusRepository
+	transactionRepository       *repository.TransactionRepository
 }
 
-func NewWalletService(db *pg.DB, ss *SubscriptionService) *WalletService {
+func NewWalletService(repository *repository.WalletRepository, subscriptionRepository *repository.SubscriptionRepository, transactionStatusRepository *repository.TransactionStatusRepository, transactionRepository *repository.TransactionRepository) *WalletService {
 	return &WalletService{
-		db:                  db,
-		subscriptionService: ss,
+		repository:                  repository,
+		subscriptionRepository:      subscriptionRepository,
+		transactionStatusRepository: transactionStatusRepository,
+		transactionRepository:       transactionRepository,
 	}
 }
 
@@ -35,21 +38,19 @@ Inserts row to wallets table.
 			*model.Exception: Exception payload.
 */
 func (as *WalletService) New(ctx context.Context, am *model.NewWalletBody) (*model.Wallet, *model.Exception) {
-	db := as.db.WithContext(ctx)
-
 	exceptionReturn := new(model.Exception)
 	walletModel := new(model.Wallet)
 	walletModel.Init()
 	walletModel.UserID = am.UserID
 	walletModel.Name = am.Name
-	_, err := db.Model(walletModel).Insert()
+	response, err := as.repository.New(ctx, walletModel)
 	if err != nil {
 		exceptionReturn.StatusCode = 400
 		exceptionReturn.ErrorCode = "400126"
 		exceptionReturn.Message = fmt.Sprintf("Error inserting row in \"wallets\" table: %s", err)
 		return nil, exceptionReturn
 	}
-	return walletModel, nil
+	return response, nil
 }
 
 /*
@@ -65,28 +66,17 @@ Updates row in wallets table by id.
 			*model.Wallet: Wallet object from database.
 			*model.Exception: Exception payload.
 */
-func (as *WalletService) Edit(ctx context.Context, body *model.WalletEdit, id string) (*model.Wallet, *model.Exception) {
-	db := as.db.WithContext(ctx)
-
+func (as *WalletService) Edit(ctx context.Context, tm *model.Wallet) (*model.Wallet, *model.Exception) {
 	exceptionReturn := new(model.Exception)
-	tm := new(model.Wallet)
-	tm.Id = id
-	tm.Name = body.Name
 
-	tx, _ := db.Begin()
-	defer tx.Rollback()
-
-	_, err := tx.Model(tm).WherePK().UpdateNotZero()
+	response, err := as.repository.Edit(ctx, tm)
 	if err != nil {
 		exceptionReturn.StatusCode = 400
 		exceptionReturn.ErrorCode = "400127"
 		exceptionReturn.Message = fmt.Sprintf("Error updating row in \"wallets\" table: %s", err)
 		return nil, exceptionReturn
 	}
-
-	tx.Commit()
-
-	return tm, nil
+	return response, nil
 }
 
 /*
@@ -102,18 +92,10 @@ Gets row in wallets table by id.
 			*model.Wallet: Wallet object from database
 			*model.Exception: Exception payload.
 */
-func (as *WalletService) Get(ctx context.Context, id string, params *model.Params) (*model.Wallet, *model.Exception) {
-	db := as.db.WithContext(ctx)
+func (as *WalletService) Get(ctx context.Context, flt *filter.WalletFilter) (*model.Wallet, *model.Exception) {
 	exceptionReturn := new(model.Exception)
 
-	wm := new(model.Wallet)
-	wm.Id = id
-
-	tx, _ := db.Begin()
-	defer tx.Rollback()
-
-	qry := tx.Model(wm)
-	err := common.GenerateEmbed(qry, params.Embed).WherePK().Select()
+	response, err := as.repository.Get(ctx, flt)
 	if err != nil {
 		exceptionReturn.StatusCode = 400
 		exceptionReturn.ErrorCode = "400128"
@@ -121,9 +103,7 @@ func (as *WalletService) Get(ctx context.Context, id string, params *model.Param
 		return nil, exceptionReturn
 	}
 
-	tx.Commit()
-
-	return wm, nil
+	return response, nil
 }
 
 /*
@@ -138,20 +118,17 @@ Gets filtered rows from wallets table.
 		Returns:
 			*model.Exception: Exception payload.
 */
-func (as *WalletService) GetAll(ctx context.Context, am *model.Auth, filtered *model.FilteredResponse) *model.Exception {
+func (as *WalletService) GetAll(ctx context.Context, flt *filter.WalletFilter) (*model.FilteredResponse, *model.Exception) {
 	exceptionReturn := new(model.Exception)
-	db := as.db.WithContext(ctx)
-	wm := new([]model.Wallet)
 
-	query := db.Model(wm).Where("? = ?", pg.Ident("user_id"), am.Id)
-	err := FilteredResponse(query, wm, filtered)
+	response, err := as.repository.GetAll(ctx, flt)
 	if err != nil {
 		exceptionReturn.StatusCode = 400
 		exceptionReturn.ErrorCode = "400134"
 		exceptionReturn.Message = fmt.Sprintf("Error selecting rows in \"wallets\" table: %s", err)
-		return exceptionReturn
+		return nil, exceptionReturn
 	}
-	return nil
+	return response, nil
 }
 
 /*
@@ -169,31 +146,30 @@ Calculates previous month, current and next month totals.
 			*model.WalletHeader: generated wallet header object
 			*model.Exception: Exception payload.
 */
-func (as *WalletService) GetHeader(ctx context.Context, am *model.Auth, walletId string) (*model.WalletHeader, *model.Exception) {
-	db := as.db.WithContext(ctx)
-
+func (as *WalletService) GetHeader(ctx context.Context, flt *filter.WalletHeaderFilter) (*model.WalletHeader, *model.Exception) {
 	wm := new(model.WalletHeader)
 	wallets := new([]model.WalletTransactions)
 	transactions := new([]model.Transaction)
 	subscriptions := new([]model.Subscription)
-	transactionStatus := new(model.TransactionStatus)
 	exceptionReturn := new(model.Exception)
 
-	tx, _ := db.Begin()
+	tx, _ := as.repository.CreateTx(ctx)
 	defer tx.Rollback()
 
-	err := tx.Model(transactionStatus).Where("? = ?", pg.Ident("status"), "completed").Select()
+	trStFlt := filter.NewTransactionStatusFilter(model.Params{})
+	trStFlt.Status = "completed"
+	transactionStatuses, err := as.transactionStatusRepository.GetAll(ctx, trStFlt, tx)
+	transactionStatus := (*transactionStatuses)[0]
 	if err != nil {
 		exceptionReturn.StatusCode = 400
 		exceptionReturn.ErrorCode = "400130"
 		exceptionReturn.Message = fmt.Sprintf("Error selecting row in \"transactionStatuses\" table: %s", err)
 		return nil, exceptionReturn
 	}
-	query2 := tx.Model(subscriptions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType").Relation("SubscriptionType")
-	if walletId != "" {
-		query2.Where("? = ?", pg.Ident("wallet_id"), walletId)
-	}
-	query2.Select()
+
+	subFlt := filter.NewSubscriptionFilter(model.Params{Embed: "TransactionType,SubscriptionType"})
+	subFlt.WalletId = flt.WalletId
+	subscriptions, err = as.subscriptionRepository.GetAllTx(tx, subFlt)
 	if err != nil {
 		exceptionReturn.StatusCode = 400
 		exceptionReturn.ErrorCode = "400131"
@@ -210,12 +186,10 @@ func (as *WalletService) GetHeader(ctx context.Context, am *model.Auth, walletId
 	firstOfNextMonth := time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, currentLocation)
 	firstOfMonthAfterNext := time.Date(currentYear, currentMonth+2, 1, 0, 0, 0, 0, currentLocation)
 
-	query := tx.Model(transactions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType")
-	if walletId != "" {
-		query.Where("? = ?", pg.Ident("wallet_id"), walletId)
-	}
-	query = query.Where("? = ?", pg.Ident("transaction_status_id"), transactionStatus.Id)
-	query.Select()
+	trFlt := filter.NewTransactionFilter(model.Params{Embed: "TransactionType,Wallet"})
+	trFlt.WalletId = flt.WalletId
+	trFlt.TransactionStatusId = transactionStatus.Id
+	transactions, err = as.transactionRepository.GetAllTx(tx, trFlt)
 	if err != nil {
 		exceptionReturn.StatusCode = 400
 		exceptionReturn.ErrorCode = "400132"
@@ -287,7 +261,7 @@ func (as *WalletService) GetHeader(ctx context.Context, am *model.Auth, walletId
 	}
 
 	wm.Currency = "USD"
-	wm.WalletId = walletId
+	wm.WalletId = flt.WalletId
 
 	return wm, nil
 }

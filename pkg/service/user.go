@@ -4,23 +4,23 @@ import (
 	"context"
 	"os"
 	"time"
+	"wallet-api/pkg/filter"
 	"wallet-api/pkg/model"
+	"wallet-api/pkg/repository"
 	"wallet-api/pkg/utl/common"
 	"wallet-api/pkg/utl/configs"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
-
-	"github.com/go-pg/pg/v10"
 )
 
 type UserService struct {
-	db *pg.DB
+	repository *repository.UserRepository
 }
 
-func NewUserService(db *pg.DB) *UserService {
+func NewUserService(repository *repository.UserRepository) *UserService {
 	return &UserService{
-		db: db,
+		repository: repository,
 	}
 }
 
@@ -37,37 +37,41 @@ Inserts new row to users table.
 			*model.Exception
 */
 func (us *UserService) Create(ctx context.Context, registerBody *model.User) (*model.User, *model.Exception) {
-	db := us.db.WithContext(ctx)
-
-	check := new(model.User)
 	exceptionReturn := new(model.Exception)
 
-	tx, _ := db.Begin()
+	tx, _ := us.repository.CreateTx(ctx)
 	defer tx.Rollback()
 
-	tx.Model(check).Where("? = ?", pg.Ident("username"), registerBody.Username).WhereOr("? = ?", pg.Ident("email"), registerBody.Email).Select()
+	check, err := us.repository.Check(ctx, tx, registerBody)
+	if err != nil {
+		exceptionReturn.Message = "Error checking user"
+		exceptionReturn.ErrorCode = "400139"
+		exceptionReturn.StatusCode = 400
+		return nil, exceptionReturn
+	}
+
 	if check.Username != "" || check.Email != "" {
 		exceptionReturn.Message = "User already exists"
 		exceptionReturn.ErrorCode = "400101"
 		exceptionReturn.StatusCode = 400
-		return check, exceptionReturn
+		return nil, exceptionReturn
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(registerBody.Password), bcrypt.DefaultCost)
 	common.CheckError(err)
 
 	registerBody.Password = string(hashedPassword)
-	_, err = tx.Model(registerBody).Insert()
-
+	us.repository.Create(ctx, tx, registerBody)
 	if err != nil {
 		exceptionReturn.Message = "Error creating user"
 		exceptionReturn.ErrorCode = "400102"
 		exceptionReturn.StatusCode = 400
+		return nil, exceptionReturn
 	}
 
 	tx.Commit()
 
-	return registerBody, exceptionReturn
+	return registerBody, nil
 }
 
 /*
@@ -82,17 +86,24 @@ Gets row from users table by email and valid password.
 			*model.Token: new session token
 			*model.Exception
 */
-func (us *UserService) Login(ctx context.Context, loginBody *model.Login) (*model.Token, *model.Exception) {
-	db := us.db.WithContext(ctx)
-
-	check := new(model.User)
+func (us *UserService) Login(ctx context.Context, body *model.Login) (*model.Token, *model.Exception) {
 	exceptionReturn := new(model.Exception)
 	tokenPayload := new(model.Token)
+	loginBody := new(model.User)
 
-	tx, _ := db.Begin()
+	loginBody.Email = body.Email
+	loginBody.Username = body.Email
+
+	tx, _ := us.repository.CreateTx(ctx)
 	defer tx.Rollback()
 
-	tx.Model(check).Where("? = ?", pg.Ident("email"), loginBody.Email).Select()
+	check, err := us.repository.Check(ctx, tx, loginBody)
+	if err != nil {
+		exceptionReturn.Message = "Error checking user"
+		exceptionReturn.ErrorCode = "400139"
+		exceptionReturn.StatusCode = 400
+		return nil, exceptionReturn
+	}
 
 	if check.Email == "" {
 		exceptionReturn.Message = "Email not found"
@@ -108,19 +119,17 @@ func (us *UserService) Login(ctx context.Context, loginBody *model.Login) (*mode
 		return tokenPayload, exceptionReturn
 	}
 
-	if bcrypt.CompareHashAndPassword([]byte(check.Password), []byte(loginBody.Password)) != nil {
+	if bcrypt.CompareHashAndPassword([]byte(check.Password), []byte(body.Password)) != nil {
 		exceptionReturn.Message = "Incorrect password"
 		exceptionReturn.ErrorCode = "400104"
 		exceptionReturn.StatusCode = 400
 		return tokenPayload, exceptionReturn
 	}
 
-	token, err := CreateToken(check, loginBody.RememberMe)
+	token, err := CreateToken(check, body.RememberMe)
 	common.CheckError(err)
 
 	tokenPayload.Token = token
-
-	tx.Commit()
 
 	return tokenPayload, exceptionReturn
 }
@@ -139,39 +148,35 @@ IsActive column is set to false
 			*model.MessageResponse
 			*model.Exception
 */
-func (us *UserService) Deactivate(ctx context.Context, auth *model.Auth) (*model.MessageResponse, *model.Exception) {
-	db := us.db.WithContext(ctx)
-
+func (us *UserService) Deactivate(ctx context.Context, flt *filter.UserFilter) (*model.MessageResponse, *model.Exception) {
 	mm := new(model.MessageResponse)
 	me := new(model.Exception)
-	um := new(model.User)
 
-	tx, _ := db.Begin()
+	tx, _ := us.repository.CreateTx(ctx)
 	defer tx.Rollback()
 
-	err := tx.Model(um).Where("? = ?", pg.Ident("id"), auth.Id).Select()
-
+	um, err := us.repository.Get(ctx, flt, tx)
 	if err != nil {
 		me.ErrorCode = "404101"
 		me.Message = "User not found"
 		me.StatusCode = 404
-		return mm, me
+		return nil, me
 	}
-	um.IsActive = false
-	_, err = tx.Model(um).Where("? = ?", pg.Ident("id"), auth.Id).Update()
 
+	um.IsActive = false
+	_, err = us.repository.Edit(ctx, um, tx)
 	if err != nil {
 		me.ErrorCode = "400105"
 		me.Message = "Could not deactivate user"
 		me.StatusCode = 400
-		return mm, me
+		return nil, me
 	}
 
 	mm.Message = "User successfully deactivated."
 
 	tx.Commit()
 
-	return mm, me
+	return mm, nil
 }
 
 /*

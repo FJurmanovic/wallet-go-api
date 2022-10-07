@@ -63,10 +63,13 @@ Gets row from subscription table by id.
 			*model.Subscription: Subscription row object from database.
 			*model.Exception: Exception payload.
 */
-func (as *SubscriptionRepository) Get(ctx context.Context, am *model.Subscription, flt filter.SubscriptionFilter) (*model.Subscription, error) {
+func (as *SubscriptionRepository) Get(ctx context.Context, flt filter.SubscriptionFilter) (*model.Subscription, error) {
 	db := as.db.WithContext(ctx)
 	tx, _ := db.Begin()
 	defer tx.Rollback()
+
+	am := new(model.Subscription)
+	am.Id = flt.Id
 
 	qry := tx.Model(am)
 	as.OnBeforeGetSubscriptionFilter(qry, &flt)
@@ -93,22 +96,23 @@ Gets filtered rows from subscription table.
 		Returns:
 			*model.Exception: Exception payload.
 */
-func (as *SubscriptionRepository) GetAll(ctx context.Context, am *[]model.Subscription, filtered *model.FilteredResponse, flt *filter.SubscriptionFilter) error {
+func (as *SubscriptionRepository) GetAll(ctx context.Context, flt *filter.SubscriptionFilter) (*model.FilteredResponse, error) {
 	db := as.db.WithContext(ctx)
 
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 
+	am := new([]model.Subscription)
 	query := tx.Model(am)
 	as.OnBeforeGetSubscriptionFilter(query, flt)
 
-	err := FilteredResponse(query, am, filtered)
+	filtered, err := FilteredResponse(query, am, flt.Params)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	tx.Commit()
 
-	return nil
+	return filtered, nil
 }
 
 /*
@@ -124,17 +128,18 @@ Gets filtered rows from subscription table.
 		Returns:
 			*model.Exception: Exception payload.
 */
-func (as *SubscriptionRepository) GetAllTx(tx *pg.Tx, am *[]model.Subscription, flt *filter.SubscriptionFilter) error {
+func (as *SubscriptionRepository) GetAllTx(tx *pg.Tx, flt *filter.SubscriptionFilter) (*[]model.Subscription, error) {
+	am := new([]model.Subscription)
 	query := tx.Model(am)
 	as.OnBeforeGetSubscriptionFilter(query, flt)
 
+	common.GenerateEmbed(query, flt.Embed)
 	err := query.Select()
 	if err != nil {
-		return err
+		return nil, err
 	}
-	tx.Commit()
 
-	return nil
+	return am, nil
 }
 
 /*
@@ -218,7 +223,6 @@ func (as *SubscriptionRepository) SubToTrans(subModel *model.Subscription, tx *p
 	transactionStatus := new(model.TransactionStatus)
 	firstOfNextMonth := time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, currentLocation)
 	tx.Model(transactionStatus).Where("? = ?", pg.Ident("status"), "pending").Select()
-	//tzFirstOfNextMonth := firstOfNextMonth.In(subModel.StartDate.Location())
 
 	startDate := subModel.StartDate
 	stopDate := firstOfNextMonth
@@ -271,8 +275,8 @@ func (as *SubscriptionRepository) SubToTrans(subModel *model.Subscription, tx *p
 }
 
 func (as *SubscriptionRepository) OnBeforeGetSubscriptionFilter(qry *orm.Query, flt *filter.SubscriptionFilter) {
-	if flt.Id != "" {
-		qry.Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), flt.Id)
+	if flt.UserId != "" {
+		qry.Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), flt.UserId)
 	}
 	if flt.WalletId != "" {
 		qry.Where("? = ?", pg.Ident("wallet_id"), flt.WalletId)

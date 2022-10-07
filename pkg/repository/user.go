@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"time"
+	"wallet-api/pkg/filter"
 	"wallet-api/pkg/model"
 	"wallet-api/pkg/utl/common"
 	"wallet-api/pkg/utl/configs"
@@ -25,6 +26,118 @@ func NewUserRepository(db *pg.DB) *UserRepository {
 }
 
 /*
+Get
+
+Gets row from transaction table by id.
+
+	   	Args:
+			context.Context: Application context
+			*model.Auth: Authentication object
+			string: id to search
+			*model.Params: url query parameters
+		Returns:
+			*model.Transaction: Transaction object from database.
+			*model.Exception: Exception payload.
+*/
+func (us *UserRepository) Get(ctx context.Context, flt *filter.UserFilter, tx *pg.Tx) (*model.User, error) {
+	wm := new(model.User)
+	wm.Id = flt.Id
+
+	commit := false
+	if tx == nil {
+		commit = true
+		db := us.db.WithContext(ctx)
+		tx, _ := db.Begin()
+		defer tx.Rollback()
+	}
+
+	qry := tx.Model(wm)
+	err := common.GenerateEmbed(qry, flt.Embed).WherePK().Select()
+	if err != nil {
+		return nil, err
+	}
+
+	if commit {
+		tx.Commit()
+	}
+
+	return wm, nil
+}
+
+/*
+Edit
+
+Updates row in transaction table by id.
+
+	   	Args:
+			context.Context: Application context
+			*model.TransactionEdit: Object to edit
+			string: id to search
+		Returns:
+			*model.Transaction: Transaction object from database.
+			*model.Exception: Exception payload.
+*/
+func (us *UserRepository) Edit(ctx context.Context, tm *model.User, tx *pg.Tx) (*model.User, error) {
+	commit := false
+	if tx == nil {
+		commit = true
+		db := us.db.WithContext(ctx)
+		tx, _ := db.Begin()
+		defer tx.Rollback()
+	}
+
+	_, err := tx.Model(tm).WherePK().UpdateNotZero()
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = tx.Model(tm).WherePK().Select()
+	if err != nil {
+		return nil, err
+	}
+
+	if commit {
+		tx.Commit()
+	}
+
+	return tm, nil
+}
+
+/*
+Check
+
+Inserts new row to users table.
+
+	   	Args:
+			context.Context: Application context
+			*model.User: User object to create
+		Returns:
+			*model.User: User object from database
+			*model.Exception
+*/
+func (us *UserRepository) Check(ctx context.Context, tx *pg.Tx, checkBody *model.User) (*model.User, error) {
+	check := new(model.User)
+
+	commit := false
+	if tx == nil {
+		commit = true
+		db := us.db.WithContext(ctx)
+		tx, _ := db.Begin()
+		defer tx.Rollback()
+	}
+
+	err := tx.Model(check).Where("? = ?", pg.Ident("username"), checkBody.Username).WhereOr("? = ?", pg.Ident("email"), checkBody.Email).Select()
+	if err != nil {
+		return nil, err
+	}
+	if commit {
+		tx.Commit()
+	}
+	return check, nil
+}
+
+/*
 Create
 
 Inserts new row to users table.
@@ -36,38 +149,31 @@ Inserts new row to users table.
 			*model.User: User object from database
 			*model.Exception
 */
-func (us *UserRepository) Create(ctx context.Context, registerBody *model.User) (*model.User, *model.Exception) {
-	db := us.db.WithContext(ctx)
-
-	check := new(model.User)
-	exceptionReturn := new(model.Exception)
-
-	tx, _ := db.Begin()
-	defer tx.Rollback()
-
-	tx.Model(check).Where("? = ?", pg.Ident("username"), registerBody.Username).WhereOr("? = ?", pg.Ident("email"), registerBody.Email).Select()
-	if check.Username != "" || check.Email != "" {
-		exceptionReturn.Message = "User already exists"
-		exceptionReturn.ErrorCode = "400101"
-		exceptionReturn.StatusCode = 400
-		return check, exceptionReturn
+func (us *UserRepository) Create(ctx context.Context, tx *pg.Tx, registerBody *model.User) (*model.User, error) {
+	commit := false
+	if tx == nil {
+		commit = true
+		db := us.db.WithContext(ctx)
+		tx, _ := db.Begin()
+		defer tx.Rollback()
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(registerBody.Password), bcrypt.DefaultCost)
-	common.CheckError(err)
-
-	registerBody.Password = string(hashedPassword)
-	_, err = tx.Model(registerBody).Insert()
+	_, err := tx.Model(registerBody).Insert()
 
 	if err != nil {
-		exceptionReturn.Message = "Error creating user"
-		exceptionReturn.ErrorCode = "400102"
-		exceptionReturn.StatusCode = 400
+		return nil, err
 	}
 
-	tx.Commit()
+	if commit {
+		tx.Commit()
+	}
 
-	return registerBody, exceptionReturn
+	return registerBody, nil
+}
+
+func (us *UserRepository) CreateTx(ctx context.Context) (*pg.Tx, error) {
+	db := us.db.WithContext(ctx)
+	return db.Begin()
 }
 
 /*

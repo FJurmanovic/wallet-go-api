@@ -56,7 +56,9 @@ func (wc *SubscriptionController) New(c *gin.Context) {
 		return
 	}
 
-	wm, exception := wc.service.New(c, body)
+	mdl := body.ToSubscription()
+
+	wm, exception := wc.service.New(c, mdl)
 
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
@@ -81,7 +83,10 @@ func (wc *SubscriptionController) Edit(c *gin.Context) {
 
 	id := c.Param("id")
 
-	wm, exception := wc.service.Edit(c, body, id)
+	mdl := body.ToSubscription()
+	mdl.Id = id
+
+	wm, exception := wc.service.Edit(c, mdl)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -96,11 +101,10 @@ Get
 */
 // ROUTE (GET /subscription/:id)
 func (wc *SubscriptionController) Get(c *gin.Context) {
-	body := new(model.Auth)
 	params := new(model.Params)
 
 	auth := c.MustGet("auth")
-	body.Id = auth.(*model.Auth).Id
+	userId := auth.(*model.Auth).Id
 
 	id := c.Param("id")
 
@@ -109,8 +113,9 @@ func (wc *SubscriptionController) Get(c *gin.Context) {
 
 	flt := filter.NewSubscriptionFilter(*params)
 	flt.Id = id
+	flt.UserId = userId
 
-	fr, exception := wc.service.Get(c, body, *flt)
+	fr, exception := wc.service.Get(c, *flt)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return
@@ -121,17 +126,6 @@ func (wc *SubscriptionController) Get(c *gin.Context) {
 
 // ROUTE (PUT /subscription/end/:id)
 func (wc *SubscriptionController) End(c *gin.Context) {
-	body := new(model.Auth)
-
-	auth := c.MustGet("auth")
-	body.Id = auth.(*model.Auth).Id
-
-	end := new(model.SubscriptionEnd)
-	if err := c.ShouldBind(end); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
 	id := c.Param("id")
 
 	fr, exception := wc.service.End(c, id)
@@ -152,14 +146,14 @@ GetAll
 func (wc *SubscriptionController) GetAll(c *gin.Context) {
 	auth := c.MustGet("auth")
 
-	fr := FilteredResponse(c)
 	wallet, _ := c.GetQuery("walletId")
+	embed, _ := c.GetQuery("embed")
 
-	flt := filter.NewSubscriptionFilter(model.Params{})
+	flt := filter.NewSubscriptionFilter(model.Params{Embed: embed})
 	flt.WalletId = wallet
-	flt.Id = auth.(*model.Auth).Id
+	flt.UserId = auth.(*model.Auth).Id
 
-	exception := wc.service.GetAll(c, flt, fr)
+	fr, exception := wc.service.GetAll(c, flt)
 	if exception != nil {
 		c.JSON(exception.StatusCode, exception)
 		return

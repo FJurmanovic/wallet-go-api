@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"time"
+	"wallet-api/pkg/filter"
 	"wallet-api/pkg/model"
 	"wallet-api/pkg/utl/common"
 
@@ -34,20 +35,11 @@ Inserts row to wallets table.
 			*model.Wallet: Wallet object from database.
 			*model.Exception: Exception payload.
 */
-func (as *WalletRepository) New(ctx context.Context, am *model.NewWalletBody) (*model.Wallet, *model.Exception) {
+func (as *WalletRepository) New(ctx context.Context, walletModel *model.Wallet) (*model.Wallet, error) {
 	db := as.db.WithContext(ctx)
-
-	exceptionReturn := new(model.Exception)
-	walletModel := new(model.Wallet)
-	walletModel.Init()
-	walletModel.UserID = am.UserID
-	walletModel.Name = am.Name
 	_, err := db.Model(walletModel).Insert()
 	if err != nil {
-		exceptionReturn.StatusCode = 400
-		exceptionReturn.ErrorCode = "400126"
-		exceptionReturn.Message = fmt.Sprintf("Error inserting row in \"wallets\" table: %s", err)
-		return nil, exceptionReturn
+		return nil, err
 	}
 	return walletModel, nil
 }
@@ -65,23 +57,15 @@ Updates row in wallets table by id.
 			*model.Wallet: Wallet object from database.
 			*model.Exception: Exception payload.
 */
-func (as *WalletRepository) Edit(ctx context.Context, body *model.WalletEdit, id string) (*model.Wallet, *model.Exception) {
+func (as *WalletRepository) Edit(ctx context.Context, tm *model.Wallet) (*model.Wallet, error) {
 	db := as.db.WithContext(ctx)
-
-	exceptionReturn := new(model.Exception)
-	tm := new(model.Wallet)
-	tm.Id = id
-	tm.Name = body.Name
 
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 
 	_, err := tx.Model(tm).WherePK().UpdateNotZero()
 	if err != nil {
-		exceptionReturn.StatusCode = 400
-		exceptionReturn.ErrorCode = "400127"
-		exceptionReturn.Message = fmt.Sprintf("Error updating row in \"wallets\" table: %s", err)
-		return nil, exceptionReturn
+		return nil, err
 	}
 
 	tx.Commit()
@@ -102,23 +86,19 @@ Gets row in wallets table by id.
 			*model.Wallet: Wallet object from database
 			*model.Exception: Exception payload.
 */
-func (as *WalletRepository) Get(ctx context.Context, id string, params *model.Params) (*model.Wallet, *model.Exception) {
+func (as *WalletRepository) Get(ctx context.Context, flt *filter.WalletFilter) (*model.Wallet, error) {
 	db := as.db.WithContext(ctx)
-	exceptionReturn := new(model.Exception)
 
 	wm := new(model.Wallet)
-	wm.Id = id
+	wm.Id = flt.Id
 
 	tx, _ := db.Begin()
 	defer tx.Rollback()
 
 	qry := tx.Model(wm)
-	err := common.GenerateEmbed(qry, params.Embed).WherePK().Select()
+	err := common.GenerateEmbed(qry, flt.Embed).WherePK().Select()
 	if err != nil {
-		exceptionReturn.StatusCode = 400
-		exceptionReturn.ErrorCode = "400128"
-		exceptionReturn.Message = fmt.Sprintf("Error selecting row in \"wallets\" table: %s", err)
-		return nil, exceptionReturn
+		return nil, err
 	}
 
 	tx.Commit()
@@ -138,20 +118,20 @@ Gets filtered rows from wallets table.
 		Returns:
 			*model.Exception: Exception payload.
 */
-func (as *WalletRepository) GetAll(ctx context.Context, am *model.Auth, filtered *model.FilteredResponse) *model.Exception {
+func (as *WalletRepository) GetAll(ctx context.Context, flt *filter.WalletFilter) (*model.FilteredResponse, *model.Exception) {
 	exceptionReturn := new(model.Exception)
 	db := as.db.WithContext(ctx)
 	wm := new([]model.Wallet)
 
-	query := db.Model(wm).Where("? = ?", pg.Ident("user_id"), am.Id)
-	err := FilteredResponse(query, wm, filtered)
+	query := db.Model(wm).Where("? = ?", pg.Ident("user_id"), flt.UserId)
+	filtered, err := FilteredResponse(query, wm, flt.Params)
 	if err != nil {
 		exceptionReturn.StatusCode = 400
 		exceptionReturn.ErrorCode = "400134"
 		exceptionReturn.Message = fmt.Sprintf("Error selecting rows in \"wallets\" table: %s", err)
-		return exceptionReturn
+		return nil, exceptionReturn
 	}
-	return nil
+	return filtered, nil
 }
 
 /*
@@ -169,7 +149,7 @@ Calculates previous month, current and next month totals.
 			*model.WalletHeader: generated wallet header object
 			*model.Exception: Exception payload.
 */
-func (as *WalletRepository) GetHeader(ctx context.Context, am *model.Auth, walletId string) (*model.WalletHeader, *model.Exception) {
+func (as *WalletRepository) GetHeader(ctx context.Context, flt *filter.WalletHeaderFilter) (*model.WalletHeader, *model.Exception) {
 	db := as.db.WithContext(ctx)
 
 	wm := new(model.WalletHeader)
@@ -189,9 +169,9 @@ func (as *WalletRepository) GetHeader(ctx context.Context, am *model.Auth, walle
 		exceptionReturn.Message = fmt.Sprintf("Error selecting row in \"transactionStatuses\" table: %s", err)
 		return nil, exceptionReturn
 	}
-	query2 := tx.Model(subscriptions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType").Relation("SubscriptionType")
-	if walletId != "" {
-		query2.Where("? = ?", pg.Ident("wallet_id"), walletId)
+	query2 := tx.Model(subscriptions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), flt.UserId).Relation("TransactionType").Relation("SubscriptionType")
+	if flt.WalletId != "" {
+		query2.Where("? = ?", pg.Ident("wallet_id"), flt.WalletId)
 	}
 	query2.Select()
 	if err != nil {
@@ -210,9 +190,9 @@ func (as *WalletRepository) GetHeader(ctx context.Context, am *model.Auth, walle
 	firstOfNextMonth := time.Date(currentYear, currentMonth+1, 1, 0, 0, 0, 0, currentLocation)
 	firstOfMonthAfterNext := time.Date(currentYear, currentMonth+2, 1, 0, 0, 0, 0, currentLocation)
 
-	query := tx.Model(transactions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), am.Id).Relation("TransactionType")
-	if walletId != "" {
-		query.Where("? = ?", pg.Ident("wallet_id"), walletId)
+	query := tx.Model(transactions).Relation("Wallet").Where("wallet.? = ?", pg.Ident("user_id"), flt.UserId).Relation("TransactionType")
+	if flt.WalletId != "" {
+		query.Where("? = ?", pg.Ident("wallet_id"), flt.WalletId)
 	}
 	query = query.Where("? = ?", pg.Ident("transaction_status_id"), transactionStatus.Id)
 	query.Select()
@@ -287,9 +267,14 @@ func (as *WalletRepository) GetHeader(ctx context.Context, am *model.Auth, walle
 	}
 
 	wm.Currency = "USD"
-	wm.WalletId = walletId
+	wm.WalletId = flt.WalletId
 
 	return wm, nil
+}
+
+func (as *WalletRepository) CreateTx(ctx context.Context) (*pg.Tx, error) {
+	db := as.db.WithContext(ctx)
+	return db.Begin()
 }
 
 /*

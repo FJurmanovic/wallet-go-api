@@ -30,14 +30,16 @@ func InitializeRepositories(c *dig.Container) {
 /*
 FilteredResponse
 
-Adds filters to query and executes it.
+Adds filter to query and executes it.
 
 	   	Args:
 	   		*pg.Query: postgres query
 			interface{}: model to be mapped from query execution.
 			*model.FilteredResponse: filter options.
 */
-func FilteredResponse(qry *pg.Query, mdl interface{}, filtered *model.FilteredResponse) error {
+func FilteredResponse(qry *pg.Query, mdl interface{}, params model.Params) (*model.FilteredResponse, error) {
+	filtered := new(model.FilteredResponse)
+	filtered.Params = params
 	if filtered.Page == 0 {
 		filtered.Page = 1
 	}
@@ -55,5 +57,5 @@ func FilteredResponse(qry *pg.Query, mdl interface{}, filtered *model.FilteredRe
 	filtered.TotalRecords = count
 	filtered.Items = mdl
 
-	return err
+	return filtered, err
 }

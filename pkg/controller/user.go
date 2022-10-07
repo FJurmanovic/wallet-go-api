@@ -2,6 +2,7 @@ package controller
 
 import (
 	"net/http"
+	"wallet-api/pkg/filter"
 	"wallet-api/pkg/middleware"
 	"wallet-api/pkg/model"
 	"wallet-api/pkg/service"
@@ -91,11 +92,13 @@ Delete
 */
 // ROUTE (DELETE /auth/deactivate).
 func (rc *UserController) Delete(c *gin.Context) {
-	auth := new(model.Auth)
 	authGet := c.MustGet("auth")
-	auth.Id = authGet.(*model.Auth).Id
+	userId := authGet.(*model.Auth).Id
 
-	mr, er := rc.service.Deactivate(c, auth)
+	flt := filter.NewUserFilter(model.Params{})
+	flt.UserId = userId
+
+	mr, er := rc.service.Deactivate(c, flt)
 
 	if er.Message != "" {
 		c.JSON(er.StatusCode, er)

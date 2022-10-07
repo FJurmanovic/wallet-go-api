@@ -1,6 +1,9 @@
 package filter
 
-import "go.uber.org/dig"
+import (
+	"go.uber.org/dig"
+	"wallet-api/pkg/model"
+)
 
 /*
 InitializeFilters
@@ -22,6 +25,13 @@ func InitializeFilters(c *dig.Container) {
 }
 
 type BaseFilter struct {
+	model.Params
 	Id       string
 	WalletId string
+	UserId   string
+}
+
+type BBa interface {
+	BaseFilter
+	some() bool
 }

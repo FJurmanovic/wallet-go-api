@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"math"
 	"time"
 )
 
@@ -29,6 +30,23 @@ type NewTransactionBody struct {
 	Amount            json.Number `json:"amount" form:"amount"`
 }
 
+func (body *NewTransactionBody) ToTransaction() *Transaction {
+	tm := new(Transaction)
+	amount, _ := body.Amount.Float64()
+
+	tm.Init()
+	tm.WalletID = body.WalletID
+	tm.TransactionTypeID = body.TransactionTypeID
+	tm.Description = body.Description
+	tm.TransactionDate = body.TransactionDate
+	tm.Amount = float32(math.Round(amount*100) / 100)
+
+	if body.TransactionDate.IsZero() {
+		tm.TransactionDate = time.Now()
+	}
+	return tm
+}
+
 type TransactionEdit struct {
 	Id                  string      `json:"id" form:"id"`
 	WalletID            string      `json:"walletId" form:"walletId"`
@@ -37,4 +55,19 @@ type TransactionEdit struct {
 	TransactionStatusID string      `json:"transactionStatusId" form:"transactionStatusId"`
 	Description         string      `json:"description" form:"description"`
 	Amount              json.Number `json:"amount" form:"amount"`
+}
+
+func (body *TransactionEdit) ToTransaction() *Transaction {
+	tm := new(Transaction)
+	amount, _ := body.Amount.Float64()
+
+	tm.Id = body.Id
+	tm.Description = body.Description
+	tm.WalletID = body.WalletID
+	tm.TransactionTypeID = body.TransactionTypeID
+	tm.TransactionDate = body.TransactionDate
+	tm.TransactionStatusID = body.TransactionStatusID
+	tm.Amount = float32(math.Round(amount*100) / 100)
+
+	return tm
 }

@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"math"
 	"time"
 )
 
@@ -43,6 +44,41 @@ type NewSubscriptionBody struct {
 	HasEnd             bool        `json:"hasEnd" pg:"hasEnd"`
 	Description        string      `json:"description" form:"description"`
 	Amount             json.Number `json:"amount" form:"amount"`
+}
+
+func (body *SubscriptionEdit) ToSubscription() *Subscription {
+	amount, _ := body.Amount.Float64()
+	tm := new(Subscription)
+	tm.Id = body.Id
+	tm.EndDate = body.EndDate
+	tm.HasEnd = body.HasEnd
+	tm.Description = body.Description
+	tm.WalletID = body.WalletID
+	tm.Amount = float32(math.Round(amount*100) / 100)
+
+	return tm
+}
+
+func (body *NewSubscriptionBody) ToSubscription() *Subscription {
+	tm := new(Subscription)
+	amount, _ := body.Amount.Float64()
+	customRange, _ := body.CustomRange.Int64()
+
+	tm.Init()
+	tm.WalletID = body.WalletID
+	tm.TransactionTypeID = body.TransactionTypeID
+	tm.SubscriptionTypeID = body.SubscriptionTypeID
+	tm.CustomRange = int(customRange)
+	tm.Description = body.Description
+	tm.StartDate = body.StartDate
+	tm.HasEnd = body.HasEnd
+	tm.EndDate = body.EndDate
+	tm.Amount = float32(math.Round(amount*100) / 100)
+
+	if body.StartDate.IsZero() {
+		tm.StartDate = time.Now()
+	}
+	return tm
 }
 
 type SubscriptionEnd struct {

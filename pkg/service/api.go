@@ -12,7 +12,7 @@ type ApiService struct {
 
 func NewApiService(repository *repository.ApiRepository) *ApiService {
 	return &ApiService{
-		repository,
+		repository: repository,
 	}
 }
 
@@ -42,6 +42,6 @@ Starts database migration.
 			*model.MessageResponse: Message response object.
 			*model.Exception: Exception response object.
 */
-func (as ApiService) PostMigrate(ctx context.Context, version string) (*model.MessageResponse, *model.Exception) {
+func (as ApiService) PostMigrate(ctx context.Context, version string) []error {
 	return as.repository.PostMigrate(ctx, version)
 }

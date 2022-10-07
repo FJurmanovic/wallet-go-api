@@ -11,3 +11,11 @@ type NewTransactionStatusBody struct {
 	Name   string `json:"name" form:"name"`
 	Status string `json:"status" form:"status"`
 }
+
+func (body *NewTransactionStatusBody) ToTransactionStatus() *TransactionStatus {
+	tm := new(TransactionStatus)
+	tm.Init()
+	tm.Name = body.Name
+	tm.Status = body.Status
+	return tm
+}

@@ -56,11 +56,11 @@ Requires "SECRET_CODE", "VERSION" (optional) from body.
 func (ac *ApiController) postMigrate(c *gin.Context) {
 	migrateModel := c.MustGet("migrate")
 	version := migrateModel.(middleware.SecretCodeModel).Version
-	mr, er := ac.service.PostMigrate(c, version)
+	er := ac.service.PostMigrate(c, version)
 
-	if er.Message != "" {
-		c.JSON(er.StatusCode, er)
+	if len(er) > 0 {
+		c.JSON(500, er)
 	} else {
-		c.JSON(200, mr)
+		c.JSON(200, nil)
 	}
 }

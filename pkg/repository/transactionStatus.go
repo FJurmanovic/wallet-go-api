@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 	"github.com/go-pg/pg/v10/orm"
 	"wallet-api/pkg/filter"
 	"wallet-api/pkg/model"
@@ -33,22 +32,12 @@ Inserts new row to transaction status table.
 			*model.TransactionType: Transaction Type object from database.
 			*model.Exception: Exception payload.
 */
-func (as *TransactionStatusRepository) New(ctx context.Context, body *model.NewTransactionStatusBody) (*model.TransactionStatus, *model.Exception) {
+func (as *TransactionStatusRepository) New(ctx context.Context, tm *model.TransactionStatus) (*model.TransactionStatus, error) {
 	db := as.db.WithContext(ctx)
-
-	tm := new(model.TransactionStatus)
-	exceptionReturn := new(model.Exception)
-
-	tm.Init()
-	tm.Name = body.Name
-	tm.Status = body.Status
 
 	_, err := db.Model(tm).Insert()
 	if err != nil {
-		exceptionReturn.StatusCode = 400
-		exceptionReturn.ErrorCode = "400123"
-		exceptionReturn.Message = fmt.Sprintf("Error inserting row in \"transactionStatus\" table: %s", err)
-		return nil, exceptionReturn
+		return nil, err
 	}
 
 	return tm, nil
@@ -66,19 +55,29 @@ Gets all rows from transaction status table.
 			*[]model.TransactionStatus: List of Transaction status objects from database.
 			*model.Exception: Exception payload.
 */
-func (as *TransactionStatusRepository) GetAll(ctx context.Context, embed string) (*[]model.TransactionStatus, *model.Exception) {
-	db := as.db.WithContext(ctx)
+func (as *TransactionStatusRepository) GetAll(ctx context.Context, flt *filter.TransactionStatusFilter, tx *pg.Tx) (*[]model.TransactionStatus, error) {
+	var commit = false
+	if tx == nil {
+		commit = true
+		db := as.db.WithContext(ctx)
+		tx, _ = db.Begin()
+	}
+
+	if commit {
+		defer tx.Rollback()
+	}
 
 	wm := new([]model.TransactionStatus)
-	exceptionReturn := new(model.Exception)
 
-	query := db.Model(wm)
-	err := common.GenerateEmbed(query, embed).Select()
+	query := tx.Model(wm)
+	as.OnBeforeGetTransactionStatusFilter(query, flt)
+	err := common.GenerateEmbed(query, flt.Embed).Select()
 	if err != nil {
-		exceptionReturn.StatusCode = 400
-		exceptionReturn.ErrorCode = "400124"
-		exceptionReturn.Message = fmt.Sprintf("Error selecting rows in \"transactionStatus\" table: %s", err)
-		return nil, exceptionReturn
+		return nil, err
+	}
+
+	if commit {
+		tx.Commit()
 	}
 
 	return wm, nil
@@ -98,18 +97,25 @@ Gets row from transactionStatus table by id.
 			*model.Subscription: Subscription row object from database.
 			*model.Exception: Exception payload.
 */
-func (as *TransactionStatusRepository) Get(ctx context.Context, am *model.TransactionStatus, flt filter.TransactionStatusFilter) (*model.TransactionStatus, error) {
-	db := as.db.WithContext(ctx)
-	tx, _ := db.Begin()
-	defer tx.Rollback()
+func (as *TransactionStatusRepository) Get(ctx context.Context, flt *filter.TransactionStatusFilter, tx *pg.Tx) (*model.TransactionStatus, error) {
+	am := new(model.TransactionStatus)
+	commit := false
+	if tx == nil {
+		commit = true
+		db := as.db.WithContext(ctx)
+		tx, _ = db.Begin()
+		defer tx.Rollback()
+	}
 
 	qry := tx.Model(am)
-	err := common.GenerateEmbed(qry, flt.Embed).WherePK().Select()
+	err := common.GenerateEmbed(qry, flt.Embed).Select()
 	if err != nil {
 		return nil, err
 	}
 
-	tx.Commit()
+	if commit {
+		tx.Commit()
+	}
 
 	return am, nil
 }
@@ -128,10 +134,11 @@ Gets row from transactionStatus table by id.
 			*model.Subscription: Subscription row object from database.
 			*model.Exception: Exception payload.
 */
-func (as *TransactionStatusRepository) GetTx(tx *pg.Tx, am *model.TransactionStatus, flt *filter.TransactionStatusFilter) (*model.TransactionStatus, error) {
+func (as *TransactionStatusRepository) GetTx(tx *pg.Tx, flt *filter.TransactionStatusFilter) (*model.TransactionStatus, error) {
+	am := new(model.TransactionStatus)
 	qry := tx.Model(am)
 	as.OnBeforeGetTransactionStatusFilter(qry, flt)
-	err := common.GenerateEmbed(qry, flt.Embed).WherePK().Select()
+	err := common.GenerateEmbed(qry, flt.Embed).Select()
 	if err != nil {
 		return nil, err
 	}
@@ -140,6 +147,9 @@ func (as *TransactionStatusRepository) GetTx(tx *pg.Tx, am *model.TransactionSta
 }
 
 func (as *TransactionStatusRepository) OnBeforeGetTransactionStatusFilter(qry *orm.Query, flt *filter.TransactionStatusFilter) {
+	if flt.Id != "" {
+		qry.Where("? = ?", pg.Ident("id"), flt.Id)
+	}
 	if flt.Status != "" {
 		qry.Where("? = ?", pg.Ident("status"), flt.Status)
 	}
