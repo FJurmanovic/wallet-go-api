@@ -3,7 +3,7 @@ package migrate
 import (
 	"fmt"
 	"log"
-	"wallet-api/pkg/models"
+	"wallet-api/pkg/model"
 
 	"github.com/go-pg/pg/v10"
 
@@ -14,14 +14,15 @@ import (
 CreateTableTransactionStatus
 
 Creates transaction_status table if it does not exist.
-   	Args:
-   		*pg.DB: Postgres database client
-	Returns:
-		error: Returns if there is an error with table creation
+
+	   	Args:
+	   		*pg.DB: Postgres database client
+		Returns:
+			error: Returns if there is an error with table creation
 */
 func CreateTableTransactionStatus(db pg.DB) error {
 	models := []interface{}{
-		(*models.TransactionStatus)(nil),
+		(*model.TransactionStatus)(nil),
 	}
 
 	for _, model := range models {

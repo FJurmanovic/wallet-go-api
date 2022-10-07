@@ -3,7 +3,7 @@ package migrate
 import (
 	"fmt"
 	"log"
-	"wallet-api/pkg/models"
+	"wallet-api/pkg/model"
 
 	"github.com/go-pg/pg/v10"
 
@@ -14,15 +14,16 @@ import (
 CreateTableApi
 
 Creates api table if it does not exist.
-   	Args:
-   		*pg.DB: Postgres database client
-	Returns:
-		error: Returns if there is an error with table creation
+
+	   	Args:
+	   		*pg.DB: Postgres database client
+		Returns:
+			error: Returns if there is an error with table creation
 */
 func CreateTableApi(db pg.DB) error {
 
 	models := []interface{}{
-		(*models.ApiModel)(nil),
+		(*model.ApiModel)(nil),
 	}
 
 	for _, model := range models {

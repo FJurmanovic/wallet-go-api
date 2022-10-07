@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 	"strings"
-	"wallet-api/pkg/models"
+	"wallet-api/pkg/model"
 	"wallet-api/pkg/utl/configs"
 
 	"github.com/dgrijalva/jwt-go"
@@ -16,11 +16,12 @@ import (
 Auth
 
 Checks if token from header is valid and extracts the id.
+
 	Args:
 		*gin.Context: Gin Application Context.
 */
 func Auth(c *gin.Context) {
-	exceptionReturn := new(models.Exception)
+	exceptionReturn := new(model.Exception)
 	tokenString := ExtractToken(c)
 	token, err := CheckToken(tokenString)
 	if err != nil {
@@ -33,7 +34,7 @@ func Auth(c *gin.Context) {
 	if ok && token.Valid {
 		userId, _ := claims["id"].(string)
 
-		authModel := new(models.Auth)
+		authModel := new(model.Auth)
 		authModel.Id = userId
 
 		c.Set("auth", authModel)
@@ -45,6 +46,7 @@ func Auth(c *gin.Context) {
 ExtractToken
 
 Extracts token from header
+
 	Args:
 		*gin.Context: Gin Application Context.
 	Returns:
@@ -66,6 +68,7 @@ func ExtractToken(c *gin.Context) string {
 CheckToken
 
 Checks if token is valid
+
 	Args:
 		string: Token to check
 	Returns:

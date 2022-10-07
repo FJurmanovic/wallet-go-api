@@ -13,7 +13,7 @@ Starts database migration.
 	Returns:
 		error: Returns if there is an error with populating table
 */
-func Start(conn *pg.DB, version string) {
+func Start(conn *pg.DB, version string) []error {
 	migration001 := Migration{
 		Version: "001",
 		Migrations: []interface{}{
@@ -53,16 +53,23 @@ func Start(conn *pg.DB, version string) {
 		migration004,
 	}
 
+	var errors []error
+
 	for _, migrationCol := range migrationsMap {
 		if version != "" && version == migrationCol.Version || version == "" {
 			for _, migration := range migrationCol.Migrations {
 				mgFunc, isFunc := migration.(func(pg.DB) error)
 				if isFunc {
-					mgFunc(*conn)
+					err := mgFunc(*conn)
+					if err != nil {
+						errors = append(errors, err)
+					}
 				}
 			}
 		}
 	}
+
+	return errors
 }
 
 type Migration struct {

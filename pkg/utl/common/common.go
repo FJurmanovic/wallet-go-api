@@ -1,12 +1,25 @@
 package common
 
 import (
+	"github.com/gin-gonic/gin"
 	"log"
 	"net"
 	"os"
 	"regexp"
 	"strings"
 )
+
+type RouteGroups struct {
+	Api               *gin.RouterGroup
+	Auth              *gin.RouterGroup
+	Wallet            *gin.RouterGroup
+	WalletHeader      *gin.RouterGroup
+	Transaction       *gin.RouterGroup
+	TransactionType   *gin.RouterGroup
+	Subscription      *gin.RouterGroup
+	SubscriptionType  *gin.RouterGroup
+	TransactionStatus *gin.RouterGroup
+}
 
 func CheckError(err error) {
 	if err != nil {
@@ -38,4 +51,13 @@ func GetIP() string {
 		}
 	}
 	return ""
+}
+
+func Find[T any](lst *[]T, callback func(item *T) bool) *T {
+	for _, item := range *lst {
+		if callback(&item) {
+			return &item
+		}
+	}
+	return nil
 }
