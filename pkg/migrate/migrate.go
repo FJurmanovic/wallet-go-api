@@ -1,6 +1,8 @@
 package migrate
 
 import (
+	"context"
+
 	"github.com/go-pg/pg/v10"
 )
 
@@ -8,10 +10,11 @@ import (
 Start
 
 Starts database migration.
-   	Args:
-   		*pg.DB: Postgres database client
-	Returns:
-		error: Returns if there is an error with populating table
+
+	   	Args:
+	   		*pg.DB: Postgres database client
+		Returns:
+			error: Returns if there is an error with populating table
 */
 func Start(conn *pg.DB, version string) []error {
 	migration001 := Migration{
@@ -21,28 +24,28 @@ func Start(conn *pg.DB, version string) []error {
 			CreateTableUsers,
 			CreateTableWallets,
 			CreateTableTransactionTypes,
-			CreateTableTransactions,
+			PopulateTransactionTypes,
 			CreateTableSubscriptionTypes,
-			CreateTableSubscriptions,
+			PopulateSubscriptionTypes,
 		},
 	}
 	migration002 := Migration{
 		Version: "002",
 		Migrations: []interface{}{
-			PopulateSubscriptionTypes,
-			PopulateTransactionTypes,
+			CreateTableTransactionStatus,
 		},
 	}
 	migration003 := Migration{
 		Version: "003",
 		Migrations: []interface{}{
-			CreateTableTransactionStatus,
+			PopulateTransactionStatus,
 		},
 	}
 	migration004 := Migration{
 		Version: "004",
 		Migrations: []interface{}{
-			PopulateTransactionStatus,
+			CreateTableSubscriptions,
+			CreateTableTransactions,
 		},
 	}
 
@@ -55,12 +58,18 @@ func Start(conn *pg.DB, version string) []error {
 
 	var errors []error
 
+	ctx := context.Background()
+
+	tx, _ := conn.BeginContext(ctx)
+
+	defer tx.Rollback()
+
 	for _, migrationCol := range migrationsMap {
 		if version != "" && version == migrationCol.Version || version == "" {
 			for _, migration := range migrationCol.Migrations {
-				mgFunc, isFunc := migration.(func(pg.DB) error)
+				mgFunc, isFunc := migration.(func(*pg.Tx) error)
 				if isFunc {
-					err := mgFunc(*conn)
+					err := mgFunc(tx)
 					if err != nil {
 						errors = append(errors, err)
 					}
@@ -68,6 +77,8 @@ func Start(conn *pg.DB, version string) []error {
 			}
 		}
 	}
+
+	tx.CommitContext(ctx)
 
 	return errors
 }

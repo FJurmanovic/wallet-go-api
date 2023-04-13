@@ -18,7 +18,7 @@ Populates transaction_status table if it exists.
 		Returns:
 			error: Returns if there is an error with populating table
 */
-func PopulateTransactionStatus(db pg.DB) error {
+func PopulateTransactionStatus(db *pg.Tx) error {
 	completed := new(model.TransactionStatus)
 	pending := new(model.TransactionStatus)
 	deleted := new(model.TransactionStatus)

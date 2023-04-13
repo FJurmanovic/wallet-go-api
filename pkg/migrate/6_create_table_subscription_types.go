@@ -20,7 +20,7 @@ Creates subscription_types table if it does not exist.
 		Returns:
 			error: Returns if there is an error with table creation
 */
-func CreateTableSubscriptionTypes(db pg.DB) error {
+func CreateTableSubscriptionTypes(db *pg.Tx) error {
 	models := []interface{}{
 		(*model.SubscriptionType)(nil),
 	}

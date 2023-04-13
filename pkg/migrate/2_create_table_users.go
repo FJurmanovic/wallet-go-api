@@ -20,7 +20,7 @@ Creates users table if it does not exist.
 		Returns:
 			error: Returns if there is an error with table creation
 */
-func CreateTableUsers(db pg.DB) error {
+func CreateTableUsers(db *pg.Tx) error {
 	models := []interface{}{
 		(*model.User)(nil),
 	}

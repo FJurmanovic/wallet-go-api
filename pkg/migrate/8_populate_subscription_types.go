@@ -18,7 +18,7 @@ Populates subscription_types table if it exists.
 		Returns:
 			error: Returns if there is an error with populating table
 */
-func PopulateSubscriptionTypes(db pg.DB) error {
+func PopulateSubscriptionTypes(db *pg.Tx) error {
 	daily := new(model.SubscriptionType)
 	weekly := new(model.SubscriptionType)
 	monthly := new(model.SubscriptionType)

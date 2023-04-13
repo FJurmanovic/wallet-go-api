@@ -30,7 +30,7 @@ _testmain.go
 *.test
 *.prof
 
-.Dockerfile
+# .Dockerfile
 
-logs.txt
-querys.txt
+logs.log
+querys.log

@@ -20,7 +20,7 @@ Creates transaction_status table if it does not exist.
 		Returns:
 			error: Returns if there is an error with table creation
 */
-func CreateTableTransactionStatus(db pg.DB) error {
+func CreateTableTransactionStatus(db *pg.Tx) error {
 	models := []interface{}{
 		(*model.TransactionStatus)(nil),
 	}
