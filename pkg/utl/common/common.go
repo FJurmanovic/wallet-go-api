@@ -1,12 +1,16 @@
 package common
 
 import (
-	"github.com/gin-gonic/gin"
+	"encoding/json"
+	"io"
 	"log"
 	"net"
+	"net/http"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/gin-gonic/gin"
 )
 
 type RouteGroups struct {
@@ -60,4 +64,25 @@ func Find[T any](lst *[]T, callback func(item *T) bool) *T {
 		}
 	}
 	return nil
+}
+
+func Fetch[T any](method string, url string) (*T, error) {
+	req, err := http.NewRequest(method, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	data := new(T)
+	err = json.Unmarshal(body, data)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }

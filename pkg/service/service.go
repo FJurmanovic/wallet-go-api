@@ -14,7 +14,7 @@ Initializes Dependency Injection modules for services
 	Args:
 		*dig.Container: Dig Container
 */
-func InitializeServices(c *dig.Container) {
+func InitializeServices(c *dig.Scope) {
 	repository.InitializeRepositories(c)
 
 	c.Provide(NewApiService)
@@ -25,4 +25,5 @@ func InitializeServices(c *dig.Container) {
 	c.Provide(NewTransactionTypeService)
 	c.Provide(NewUserService)
 	c.Provide(NewWalletService)
+	c.Provide(NewCurrencyService)
 }

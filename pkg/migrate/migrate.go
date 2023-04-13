@@ -48,12 +48,19 @@ func Start(conn *pg.DB, version string) []error {
 			CreateTableTransactions,
 		},
 	}
+	migration005 := Migration{
+		Version: "005",
+		Migrations: []interface{}{
+			CreateTableCurrencies,
+		},
+	}
 
 	migrationsMap := []Migration{
 		migration001,
 		migration002,
 		migration003,
 		migration004,
+		migration005,
 	}
 
 	var errors []error

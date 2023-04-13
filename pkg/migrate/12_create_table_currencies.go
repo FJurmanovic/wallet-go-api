@@ -10,18 +10,18 @@ import (
 )
 
 /*
-CreateTableSubscriptions
+CreateTableCurrencies
 
-Creates subscriptions table if it does not exist.
+Creates Currencies table if it does not exist.
 
 	   	Args:
 	   		*pg.DB: Postgres database client
 		Returns:
 			error: Returns if there is an error with table creation
 */
-func CreateTableSubscriptions(db *pg.Tx) error {
+func CreateTableCurrencies(db *pg.Tx) error {
 	models := []interface{}{
-		(*model.Subscription)(nil),
+		(*model.Currency)(nil),
 	}
 
 	for _, model := range models {
@@ -30,10 +30,10 @@ func CreateTableSubscriptions(db *pg.Tx) error {
 			FKConstraints: true,
 		})
 		if err != nil {
-			log.Printf("Error creating table \"subscriptions\": %s", err)
+			log.Printf("Error creating table \"currencies\": %s", err)
 			return err
 		} else {
-			fmt.Println("Table \"subscriptions\" created successfully")
+			fmt.Println("Table \"currencies\" created successfully")
 		}
 	}
 	return nil

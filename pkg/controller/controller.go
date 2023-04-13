@@ -2,12 +2,13 @@ package controller
 
 import (
 	"fmt"
-	"go.uber.org/dig"
 	"strconv"
 	"strings"
 	"wallet-api/pkg/model"
 	"wallet-api/pkg/service"
 	"wallet-api/pkg/utl/common"
+
+	"go.uber.org/dig"
 
 	"github.com/gin-gonic/gin"
 )
@@ -21,17 +22,18 @@ Initializes Dependency Injection modules and registers controllers
 		*dig.Container: Dig Container
 */
 func InitializeControllers(c *dig.Container) {
-	service.InitializeServices(c)
+	controllerContainer := c.Scope("controller")
+	service.InitializeServices(controllerContainer)
 
-	c.Invoke(NewApiController)
-	c.Invoke(NewUserController)
-	c.Invoke(NewWalletController)
-	c.Invoke(NewWalletHeaderController)
-	c.Invoke(NewTransactionController)
-	c.Invoke(NewTransactionStatusController)
-	c.Invoke(NewTransactionTypeController)
-	c.Invoke(NewSubscriptionController)
-	c.Invoke(NewSubscriptionTypeController)
+	controllerContainer.Invoke(NewApiController)
+	controllerContainer.Invoke(NewUserController)
+	controllerContainer.Invoke(NewWalletController)
+	controllerContainer.Invoke(NewWalletHeaderController)
+	controllerContainer.Invoke(NewTransactionController)
+	controllerContainer.Invoke(NewTransactionStatusController)
+	controllerContainer.Invoke(NewTransactionTypeController)
+	controllerContainer.Invoke(NewSubscriptionController)
+	controllerContainer.Invoke(NewSubscriptionTypeController)
 
 }
 

@@ -27,7 +27,7 @@ func CreateTableTransactionTypes(db *pg.Tx) error {
 
 	for _, model := range models {
 		err := db.Model(model).CreateTable(&orm.CreateTableOptions{
-			IfNotExists:   false,
+			IfNotExists:   true,
 			FKConstraints: true,
 		})
 		if err != nil {

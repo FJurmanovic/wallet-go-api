@@ -1,9 +1,10 @@
 package repository
 
 import (
-	"go.uber.org/dig"
 	"wallet-api/pkg/model"
 	"wallet-api/pkg/utl/common"
+
+	"go.uber.org/dig"
 
 	"github.com/go-pg/pg/v10"
 )
@@ -16,7 +17,7 @@ Initializes Dependency Injection modules for repositories
 	Args:
 		*dig.Container: Dig Container
 */
-func InitializeRepositories(c *dig.Container) {
+func InitializeRepositories(c *dig.Scope) {
 	c.Provide(NewApiRepository)
 	c.Provide(NewSubscriptionRepository)
 	c.Provide(NewSubscriptionTypeRepository)
@@ -25,6 +26,7 @@ func InitializeRepositories(c *dig.Container) {
 	c.Provide(NewTransactionTypeRepository)
 	c.Provide(NewUserRepository)
 	c.Provide(NewWalletRepository)
+	c.Provide(NewCurrencyRepository)
 }
 
 /*

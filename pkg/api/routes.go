@@ -1,12 +1,16 @@
 package api
 
 import (
+	"log"
+	"time"
 	"wallet-api/pkg/controller"
+	"wallet-api/pkg/job"
 	"wallet-api/pkg/middleware"
 	"wallet-api/pkg/utl/common"
 	"wallet-api/pkg/utl/configs"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-co-op/gocron"
 	"github.com/go-pg/pg/v10"
 	"go.uber.org/dig"
 )
@@ -22,6 +26,10 @@ Initializes web api controllers and its corresponding routes.
 */
 func Routes(s *gin.Engine, db *pg.DB) {
 	c := dig.New()
+
+	scheduler := gocron.NewScheduler(time.UTC)
+	scheduler.SetMaxConcurrentJobs(3, 1)
+	defer scheduler.StartAsync()
 	ver := s.Group(configs.Prefix)
 
 	routeGroups := &common.RouteGroups{
@@ -46,5 +54,13 @@ func Routes(s *gin.Engine, db *pg.DB) {
 	c.Provide(func() *pg.DB {
 		return db
 	})
+	c.Provide(func() *gocron.Scheduler {
+		return scheduler
+	})
+	c.Provide(func() *log.Logger {
+		return log.Default()
+	})
 	controller.InitializeControllers(c)
+	job.InitializeJobs(c)
+
 }
