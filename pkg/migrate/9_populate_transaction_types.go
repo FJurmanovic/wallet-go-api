@@ -18,7 +18,7 @@ Populates transaction_types table if it exists.
 		Returns:
 			error: Returns if there is an error with populating table
 */
-func PopulateTransactionTypes(db pg.DB) error {
+func PopulateTransactionTypes(db *pg.Tx) error {
 	gain := new(model.TransactionType)
 	expense := new(model.TransactionType)
 

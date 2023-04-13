@@ -21,9 +21,9 @@ func main() {
 	r := gin.New()
 	r.Use(middleware.CORSMiddleware())
 
-	file, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+	file, err := os.OpenFile("logs.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
-		log.Print("Cannot open file logs.txt")
+		log.Print("Cannot open file logs.log")
 	}
 	log.SetOutput(file)
 
