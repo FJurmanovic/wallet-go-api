@@ -20,7 +20,7 @@ Creates transaction_types table if it does not exist.
 		Returns:
 			error: Returns if there is an error with table creation
 */
-func CreateTableTransactionTypes(db pg.DB) error {
+func CreateTableTransactionTypes(db *pg.Tx) error {
 	models := []interface{}{
 		(*model.TransactionType)(nil),
 	}

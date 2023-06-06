@@ -20,7 +20,7 @@ Creates api table if it does not exist.
 		Returns:
 			error: Returns if there is an error with table creation
 */
-func CreateTableApi(db pg.DB) error {
+func CreateTableApi(db *pg.Tx) error {
 
 	models := []interface{}{
 		(*model.ApiModel)(nil),

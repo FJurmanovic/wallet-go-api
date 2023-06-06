@@ -20,7 +20,7 @@ Creates wallets table if it does not exist.
 		Returns:
 			error: Returns if there is an error with table creation
 */
-func CreateTableWallets(db pg.DB) error {
+func CreateTableWallets(db *pg.Tx) error {
 	models := []interface{}{
 		(*model.Wallet)(nil),
 	}

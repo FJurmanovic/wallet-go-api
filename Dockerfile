@@ -1,17 +1,14 @@
-FROM golang:alpine as builder
+FROM golang:alpine
 
 WORKDIR /app 
 
-COPY . .
+COPY go.mod go.sum ./
+RUN go mod download
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o ./bin/api ./cmd/api/main.go
+COPY . ./
 
-FROM scratch
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /api ./cmd/api/main.go
 
-WORKDIR /app
+EXPOSE 4000
 
-COPY --from=builder /app/bin/api /usr/bin/
-
-EXPOSE 80
-
-CMD ["api"]
+CMD ["/api"]

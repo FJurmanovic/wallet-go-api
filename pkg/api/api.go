@@ -14,7 +14,7 @@ Initializes Web API Routes.
 		*pg.DB: Postgres Database Client.
 */
 func Init(s *gin.Engine, db *pg.DB) {
-	Routes(s, db)
+    Routes(s, db)
 }
 
 type API struct {
