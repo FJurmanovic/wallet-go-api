@@ -4,5 +4,14 @@ type: docker
 name: default
 
 steps:
-  - name: backend
-    image: Dockerfile
+  - name: build
+    image: golang
+    volumes:
+    - name: deps
+      path: /go
+    commands:
+    - go build
+
+volumes:
+- name: deps
+  temp: {}
