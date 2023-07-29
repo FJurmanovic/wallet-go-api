@@ -5,12 +5,10 @@ name: default
 
 steps:
   - name: build
-    image: golang
-    volumes:
-    - name: deps
-      path: /go
+    image: golang:alpine
     commands:
-    - go build
+    - go mod download
+    - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /api ./cmd/api/main.go
 
 volumes:
 - name: deps
