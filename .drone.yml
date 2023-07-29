@@ -4,11 +4,11 @@ type: docker
 name: default
 
 steps:
-  - name: build
-    image: golang:alpine
-    commands:
-    - go mod download
-    - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /api ./cmd/api/main.go
+- name: build
+  image: golang:alpine
+  commands:
+  - go mod download
+  - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /api ./cmd/api/main.go
 
 volumes:
 - name: deps
