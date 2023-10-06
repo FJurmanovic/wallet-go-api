@@ -50,7 +50,7 @@ func (us *UserService) Create(ctx context.Context, registerBody *model.User) (*m
 		return nil, exceptionReturn
 	}
 
-	if check.Username != "" || check.Email != "" {
+	if check {
 		exceptionReturn.Message = "User already exists"
 		exceptionReturn.ErrorCode = "400101"
 		exceptionReturn.StatusCode = 400
@@ -94,10 +94,13 @@ func (us *UserService) Login(ctx context.Context, body *model.Login) (*model.Tok
 	loginBody.Email = body.Email
 	loginBody.Username = body.Email
 
+	flt := filter.NewUserFilter(model.Params{})
+	flt.Email = body.Email
+
 	tx, _ := us.repository.CreateTx(ctx)
 	defer tx.Rollback()
 
-	check, err := us.repository.Check(ctx, tx, loginBody)
+	check, err := us.repository.Get(ctx, flt, tx)
 	if err != nil {
 		exceptionReturn.Message = "Error checking user"
 		exceptionReturn.ErrorCode = "400139"

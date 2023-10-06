@@ -51,6 +51,14 @@ func (rc *UserController) PostLogin(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if body.Email == "" {
+		c.JSON(400, "Email cannot be empty!")
+		return
+	}
+	if body.Password == "" {
+		c.JSON(400, "Password cannot be empty!")
+		return
+	}
 	returnedUser, exceptionReturn := rc.service.Login(c, body)
 
 	if exceptionReturn.Message != "" {

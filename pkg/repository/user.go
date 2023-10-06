@@ -42,6 +42,7 @@ Gets row from transaction table by id.
 func (us *UserRepository) Get(ctx context.Context, flt *filter.UserFilter, tx *pg.Tx) (*model.User, error) {
 	wm := new(model.User)
 	wm.Id = flt.Id
+	wm.Email = flt.Email
 
 	commit := false
 	if tx == nil {
@@ -52,7 +53,16 @@ func (us *UserRepository) Get(ctx context.Context, flt *filter.UserFilter, tx *p
 	}
 
 	qry := tx.Model(wm)
-	err := common.GenerateEmbed(qry, flt.Embed).WherePK().Select()
+
+	var query = common.GenerateEmbed(qry, flt.Embed)
+	if wm.Id != "" {
+		query.WherePK()
+	}
+	if wm.Email != "" {
+		query.Where("? = ?", pg.Ident("email"), wm.Email)
+	}
+
+	err := query.Select()
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +126,7 @@ Inserts new row to users table.
 			*model.User: User object from database
 			*model.Exception
 */
-func (us *UserRepository) Check(ctx context.Context, tx *pg.Tx, checkBody *model.User) (*model.User, error) {
+func (us *UserRepository) Check(ctx context.Context, tx *pg.Tx, checkBody *model.User) (bool, error) {
 	check := new(model.User)
 
 	commit := false
@@ -127,14 +137,14 @@ func (us *UserRepository) Check(ctx context.Context, tx *pg.Tx, checkBody *model
 		defer tx.Rollback()
 	}
 
-	err := tx.Model(check).Where("? = ?", pg.Ident("username"), checkBody.Username).WhereOr("? = ?", pg.Ident("email"), checkBody.Email).Select()
+	exists, err := tx.Model(check).Where("? = ?", pg.Ident("username"), checkBody.Username).WhereOr("? = ?", pg.Ident("email"), checkBody.Email).Exists()
 	if err != nil {
-		return nil, err
+		return false, err
 	}
 	if commit {
 		tx.Commit()
 	}
-	return check, nil
+	return exists, nil
 }
 
 /*
